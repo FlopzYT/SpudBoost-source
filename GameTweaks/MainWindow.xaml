@@ -1,0 +1,768 @@
+﻿<Window x:Class="GameTweaks.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GameTweaks"
+        Title="SpudBoost" Icon="app.ico" Height="760" Width="1120" MinHeight="560" MinWidth="860"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="13">
+    <Window.Resources>
+        <!-- One tweak row: name, badges, description, switch -->
+        <DataTemplate x:Key="TweakCard">
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                            <Border Style="{StaticResource Badge}" Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Admin" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
+                            </Border>
+                            <Border Style="{StaticResource Badge}" Visibility="{Binding PendingNote, Converter={x:Static local:NotNullToVisibility.Instance}}">
+                                <TextBlock Text="{Binding PendingNote}" FontSize="11" Foreground="{StaticResource WarnBrush}"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="1" Style="{StaticResource Switch}"
+                                  IsChecked="{Binding IsOn, Mode=TwoWay}" IsEnabled="{Binding CanToggle}"
+                                  Click="TweakToggle_Click"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.RowSpan="2" Background="{StaticResource SidebarBrush}">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,22,20,20">
+                    <Image Source="logo.png" Width="42" Height="42" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,10,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontSize="22" FontWeight="Bold">
+                            <Run Text="Spud" Foreground="{StaticResource TextBrush}"/><Run Text="Boost" Foreground="{StaticResource AccentBrush}"/>
+                        </TextBlock>
+                        <TextBlock Text="Potato PC? Boost it." Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Margin="16" Padding="12" CornerRadius="8" Background="{StaticResource CardBrush}">
+                    <StackPanel>
+                        <TextBlock x:Name="AdminText" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                        <Button x:Name="AdminButton" Content="Restart as admin" Margin="0,8,0,0" Click="RestartAdmin_Click" Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+                </Border>
+                <Border x:Name="UpdateCard" DockPanel.Dock="Bottom" Margin="16,16,16,0" Padding="12" CornerRadius="8"
+                        Background="{StaticResource CardBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock x:Name="UpdateTitle" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock x:Name="UpdateCardText" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource SubTextBrush}" Margin="0,4,0,0"
+                                   Text="Installs in a few seconds and keeps all your settings."/>
+                        <Button x:Name="UpdateNowButton" Content="Update now" Margin="0,8,0,0" Click="UpdateNow_Click" Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+                </Border>
+                <Border x:Name="PendingCard" DockPanel.Dock="Bottom" Margin="16,16,16,0" Padding="12" CornerRadius="8"
+                        Background="{StaticResource CardBrush}" BorderBrush="{StaticResource WarnBrush}" BorderThickness="1" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" Foreground="{StaticResource WarnBrush}"/>
+                        <TextBlock x:Name="PendingText" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource SubTextBrush}" Margin="0,4,0,0"/>
+                        <Button x:Name="PendingButton" Margin="0,8,0,0" Click="PendingAction_Click" Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+                </Border>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <RadioButton Style="{StaticResource NavButton}" Content="⚡  Tweaks" Tag="TweaksPage" IsChecked="True" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🎮  Game Boost" Tag="BoostPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🚀  Startup apps" Tag="StartupPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🌐  Network" Tag="NetworkPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🥔  Fortnite Potato" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🎯  Crosshair" Tag="CrosshairPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="↩  Backup &amp; Undo" Tag="BackupPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="⚙  Settings" Tag="SettingsPage" Checked="Nav_Checked" GroupName="Nav"/>
+                </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Pages -->
+        <Grid Grid.Column="1" x:Name="Pages">
+
+            <!-- System tweaks -->
+            <ScrollViewer x:Name="TweaksPage" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="System tweaks" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="One-click Windows optimizations. The original value is saved before each change, so turning a switch off puts it back exactly as it was."/>
+                    <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Biggest wins for this PC" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource WarnBrush}" Margin="0,0,0,8"/>
+                            <ItemsControl x:Name="HealthList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,6">
+                                            <TextBlock Text="{Binding Title, StringFormat=• {0}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Detail}" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="12,2,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button Content="Apply all" Style="{StaticResource PrimaryButton}" Click="ApplyAllSystem_Click"/>
+                        <TextBlock Text="Skips tweaks that need extra confirmation, like Memory Integrity." VerticalAlignment="Center"
+                                   Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="SystemList" ItemTemplate="{StaticResource TweakCard}"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Game boost -->
+            <ScrollViewer x:Name="BoostPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Game Boost" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="When a game from your list starts, SpudBoost raises its CPU priority and lowers the priority of background apps. Everything is put back when the game closes."/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Auto boost" FontSize="14" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Status}" Foreground="{StaticResource SubTextBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                        </Grid>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <CheckBox x:Name="RaisePriorityBox" Content="Raise the game's priority to High" Click="BoostOption_Click"/>
+                            <CheckBox x:Name="LowerBackgroundBox" Content="Lower background apps to Below normal" Click="BoostOption_Click"/>
+                            <CheckBox x:Name="CloseAppsBox" Content="Close unnecessary apps (from the list below) when a game starts" Click="BoostOption_Click"/>
+                        </StackPanel>
+                    </Border>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Games (process names, one per line)" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBox x:Name="GamesBox" AcceptsReturn="True" Height="190" VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Background apps to lower" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBox x:Name="BackgroundBox" AcceptsReturn="True" Height="190" VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right" Content="Close them now" Margin="0" Click="CloseAppsNow_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Unnecessary apps to close" FontWeight="SemiBold"/>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"
+                                               Text="Background apps that use CPU and memory but aren't needed while you play. Add or remove names (one per line). Windows, security and anti-cheat processes are always skipped, even if listed. Apps with a window are asked to close normally so they can save."/>
+                                </StackPanel>
+                            </DockPanel>
+                            <TextBox x:Name="AppsToCloseBox" AcceptsReturn="True" Height="150" VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Save lists" Style="{StaticResource PrimaryButton}" Click="SaveBoostLists_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Startup apps -->
+            <ScrollViewer x:Name="StartupPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Startup apps" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Programs that launch every time you sign in and keep running in the background. Turning one off doesn't uninstall it; you can still open it yourself, and turn it back on here or in Task Manager. Takes effect next sign-in."/>
+                    <ItemsControl x:Name="StartupList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="18,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,16,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <Border Style="{StaticResource Badge}" Visibility="{Binding Heavy, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="Heavy" FontSize="11" Foreground="{StaticResource WarnBrush}"/>
+                                                </Border>
+                                                <Border Style="{StaticResource Badge}" Visibility="{Binding Protected, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="Needed by Windows" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Scope, StringFormat=  ·  {0}}" Foreground="{StaticResource SubTextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Command}" Foreground="{StaticResource SubTextBrush}" FontSize="11"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"
+                                                      IsEnabled="{Binding CanToggle}" Click="StartupToggle_Click"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Network -->
+            <ScrollViewer x:Name="NetworkPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Network" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Latency tweaks for online games. Your original adapter settings are saved and restored when you switch a tweak off."/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="DNS provider" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="DnsCombo" Width="160" Margin="0,0,16,0" SelectionChanged="DnsCombo_SelectionChanged"/>
+                        <Button Content="Flush DNS cache" Click="FlushDns_Click"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="NetworkList" ItemTemplate="{StaticResource TweakCard}"/>
+
+                    <TextBlock Text="Fortnite server ping" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,10">
+                                <Button x:Name="PingButton" DockPanel.Dock="Right" Content="Test ping" Style="{StaticResource PrimaryButton}" Margin="0" Click="TestPing_Click"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" Margin="0,0,12,0"
+                                           Text="Measures your ping and jitter (how much it jumps around) to each Fortnite region. Pick the starred one in Fortnite → Settings → Game → Matchmaking Region. Lower jitter matters as much as lower ping."/>
+                            </DockPanel>
+                            <ItemsControl x:Name="PingList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="140"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="RegionText" Text="{Binding Region}" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Summary}" Foreground="{StaticResource SubTextBrush}"/>
+                                        </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Best}" Value="True">
+                                                <Setter TargetName="RegionText" Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                                <Setter TargetName="RegionText" Property="Text" Value="{Binding Region, StringFormat=★ {0}}"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Fortnite potato graphics -->
+            <ScrollViewer x:Name="FortnitePage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Fortnite potato graphics" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Edit Fortnite's own settings file (GameUserSettings.ini) beyond what the in-game menu allows. A backup is taken before every save. Close Fortnite before saving."/>
+                    <Border x:Name="FortniteWarning" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed">
+                        <TextBlock x:Name="FortniteWarningText" Foreground="{StaticResource WarnBrush}" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <StackPanel x:Name="FortniteEditor">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <Button Content="🥔🥔 Ultra potato" Style="{StaticResource PrimaryButton}" Click="UltraPotatoPreset_Click"/>
+                            <Button Content="🥔 Potato preset" Click="PotatoPreset_Click"/>
+                            <Button Content="🎯 Competitive preset" Click="CompetitivePreset_Click"/>
+                            <Button Content="Reload from file" Click="ReloadFortnite_Click"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Display" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="70"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Shown when Legacy Performance is picked: it also needs launch options in the Epic launcher -->
+                                <Border Grid.Row="6" Grid.ColumnSpan="3" Margin="0,10,0,0" Padding="14,10" CornerRadius="8"
+                                        Background="{StaticResource AccentDimBrush}" Visibility="{Binding IsLegacyPerformance, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel>
+                                        <TextBlock Text="Legacy Performance: one more step" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,8" Foreground="{StaticResource TextBrush}"
+                                                   Text="This is Fortnite's old, flattest renderer (DirectX 11 + mobile graphics). Epic has marked it deprecated and may have removed it; if so, Fortnite just uses normal Performance mode. To force it, open the Epic Games Launcher → your profile picture → Settings → scroll to Fortnite → tick Additional Command Line Arguments and paste:"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox Text="{x:Static fortnite:FortniteSettings.LegacyLaunchArgs}" IsReadOnly="True" Width="220"
+                                                     xmlns:fortnite="clr-namespace:GameTweaks.Fortnite"/>
+                                            <Button Content="Copy" Margin="8,0,0,0" Padding="14,4" Click="CopyLegacyArgs_Click"/>
+                                        </StackPanel>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" FontSize="12" Foreground="{StaticResource SubTextBrush}"
+                                                   Text="To go back, pick another rendering mode here and delete those arguments in the Epic launcher."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock Grid.Row="5" Text="Mesh quality" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,6">
+                                    <ComboBox x:Name="MeshCombo" Width="220" SelectedIndex="{Binding MeshQuality, Mode=TwoWay}"
+                                              IsEnabled="{Binding IsPerformanceMode}"/>
+                                    <TextBlock Text="Performance mode only. Low makes builds flat and plain." Margin="12,0,0,0"
+                                               VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Resolution" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,6">
+                                    <TextBox Width="80" Text="{Binding ResX, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="×" Margin="8,0" VerticalAlignment="Center"/>
+                                    <TextBox Width="80" Text="{Binding ResY, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <ComboBox x:Name="ResPresetCombo" Width="190" Margin="12,0,0,0" SelectionChanged="ResPreset_SelectionChanged"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Text="Window mode" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="WindowModeCombo" Grid.Row="1" Grid.Column="1" Width="220" HorizontalAlignment="Left" Margin="0,6"
+                                          SelectedIndex="{Binding WindowMode, Mode=TwoWay}"/>
+
+                                <TextBlock Grid.Row="2" Text="Rendering mode" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="RenderModeCombo" Grid.Row="2" Grid.Column="1" Width="220" HorizontalAlignment="Left" Margin="0,6"
+                                          SelectedIndex="{Binding RenderMode, Mode=TwoWay}"/>
+
+                                <TextBlock Grid.Row="3" Text="3D resolution" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="3" Grid.Column="1" Minimum="25" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding ResolutionPercent, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,8"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding ResolutionPercent, StringFormat={}{0}%}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+
+                                <TextBlock Grid.Row="4" Text="FPS limit (0 = unlimited)" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="4" Grid.Column="1" Minimum="0" Maximum="360" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding FrameRateLimit, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,8"/>
+                                <TextBox Grid.Row="4" Grid.Column="2" Width="56" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                         Text="{Binding FrameRateLimit, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="Graphics quality" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource Card}">
+                            <ItemsControl ItemsSource="{Binding Qualities}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="170"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="70"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                            <Slider Grid.Column="1" Minimum="0" Maximum="3" TickFrequency="1" IsSnapToTickEnabled="True"
+                                                    TickPlacement="BottomRight" Value="{Binding Value, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding LevelName}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                       Foreground="{StaticResource AccentBrush}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+
+                        <TextBlock Text="Options" Style="{StaticResource SectionTitle}"/>
+                        <ItemsControl ItemsSource="{Binding Toggles}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Card}" Padding="18,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Label}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Hint}" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Value, Mode=TwoWay}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <CheckBox Content="Lock settings file (read-only) so Fortnite can't reset it" IsChecked="{Binding LockReadOnly, Mode=TwoWay}"/>
+                                <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,0"
+                                           Text="While locked, changes you make in Fortnite's own settings menu won't be saved. Unlock it here to change settings in-game."/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="Save to Fortnite" Style="{StaticResource PrimaryButton}" Click="SaveFortnite_Click"/>
+                            <Button Content="Restore original settings" Click="RestoreFortnite_Click"/>
+                        </StackPanel>
+
+                        <StackPanel x:Name="FortniteGpuCard" Visibility="Collapsed">
+                            <TextBlock Text="Flat potato textures (NVIDIA driver)" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
+                            <ItemsControl x:Name="FortniteTweakList" ItemTemplate="{StaticResource TweakCard}"/>
+                        </StackPanel>
+
+                        <StackPanel x:Name="AmdPotatoCard" Visibility="Collapsed">
+                            <TextBlock Text="Flat potato textures (AMD Radeon)" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                               Text="AMD's driver has no texture-blur (LOD bias) setting like NVIDIA's, and its per-game settings can only be changed safely in AMD Software. These settings get you closest to the flat look, and they're all allowed with anti-cheat."/>
+                                    <TextBlock Text="AMD Software: Adrenalin → Gaming → Games → Fortnite" FontWeight="SemiBold"/>
+                                    <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
+                                        • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                        • Anisotropic Filtering: <Run Text="Disabled" Foreground="{StaticResource AccentBrush}"/>,  Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                        • Tessellation Mode: <Run Text="Override application settings" Foreground="{StaticResource AccentBrush}"/>,  Maximum Tessellation Level: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                        • Radeon Image Sharpening: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/> (keeps edges soft and flat)<LineBreak/>
+                                        • Optional: Radeon Super Resolution <Run Text="On" Foreground="{StaticResource AccentBrush}"/>, then pick a lower resolution in Fortnite for an even blockier look and more FPS
+                                    </TextBlock>
+                                    <Button Content="Open AMD Software" HorizontalAlignment="Left" Click="OpenAmd_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Text="Even more potato: GPU driver settings" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="Your graphics driver can lower texture quality further. These settings are allowed and safe with anti-cheat. Set them for Fortnite only (FortniteClient-Win64-Shipping.exe), not globally."/>
+                                <TextBlock Text="NVIDIA Control Panel → Manage 3D settings → Program settings" FontWeight="SemiBold"/>
+                                <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
+                                    • Texture filtering - Quality: <Run Text="High performance" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                    • Anisotropic filtering: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/>,  Antialiasing - FXAA: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                    • Low latency mode: <Run Text="Ultra" Foreground="{StaticResource AccentBrush}"/>,  Power management: <Run Text="Prefer maximum performance" Foreground="{StaticResource AccentBrush}"/>
+                                </TextBlock>
+                                <TextBlock Text="AMD Software: Adrenalin → Gaming → Fortnite" FontWeight="SemiBold"/>
+                                <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
+                                    • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/>,  Anisotropic Filtering: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                    • Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/>,  Radeon Anti-Lag: <Run Text="On" Foreground="{StaticResource AccentBrush}"/>
+                                </TextBlock>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Open NVIDIA Control Panel" Click="OpenNvidia_Click"/>
+                                    <Button Content="Open AMD Software" Click="OpenAmd_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Backup & undo -->
+            <ScrollViewer x:Name="BackupPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Backup &amp; Undo" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Every change SpudBoost makes is recorded with its original value. Use these to put things back."/>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Create restore point" Click="RestorePoint_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Windows restore point" FontWeight="SemiBold"/>
+                                <TextBlock Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,4,12,0"
+                                           Text="A full system snapshot you can roll back to from Windows Recovery. Requires admin. Windows allows one every 24 hours."/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Undo all tweaks" Style="{StaticResource PrimaryButton}" Click="UndoAll_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Undo every tweak" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="UndoSummary" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,4,12,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Restore Fortnite" Click="RestoreFortnite_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Fortnite settings" FontWeight="SemiBold"/>
+                                <TextBlock Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,4,12,0"
+                                           Text="Puts back the GameUserSettings.ini you had before SpudBoost first changed it."/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Open folder" Click="OpenBackups_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Backup folder" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="BackupPathText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,4,12,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+            <!-- Crosshair overlay -->
+            <ScrollViewer x:Name="CrosshairPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Custom crosshair" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Draws your own crosshair in the centre of the screen, on top of the game. It doesn't touch the game itself. Only works when the game runs in Windowed fullscreen (borderless). Some tournaments don't allow overlay crosshairs."/>
+                    <Border x:Name="CrosshairWarning" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed">
+                        <TextBlock x:Name="CrosshairWarningText" Foreground="{StaticResource WarnBrush}" TextWrapping="Wrap"/>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Show crosshair" FontSize="14" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Status}" Foreground="{StaticResource SubTextBrush}" Margin="0,4,0,6"/>
+                                <CheckBox Content="Only show in Fortnite (hides when you alt-tab or go to the desktop)" IsChecked="{Binding OnlyInGame, Mode=TwoWay}"/>
+                                <CheckBox Content="Hide while aiming (right mouse held) so scopes stay clear" IsChecked="{Binding HideWhileAiming, Mode=TwoWay}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock Text="Spread while shooting" VerticalAlignment="Center" Width="150"/>
+                                    <Slider Width="200" Minimum="0" Maximum="20" Value="{Binding FireSpread, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding FireSpread, StringFormat='{}{0} px (0 = off)'}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Which crosshair is being edited, and the keys that switch to it -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Editing" VerticalAlignment="Center" Width="110" FontWeight="SemiBold"/>
+                                <ComboBox x:Name="CrosshairEditCombo" Width="180" SelectedIndex="{Binding EditIndex, Mode=TwoWay}"/>
+                                <CheckBox Content="Use this crosshair" Margin="16,0,0,0" VerticalAlignment="Center"
+                                          IsChecked="{Binding WeaponEnabled, Mode=TwoWay}" Visibility="{Binding IsWeapon, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBlock Text="Switch keys" VerticalAlignment="Center" Width="110"/>
+                                <TextBox Width="180" Text="{Binding Keys, UpdateSourceTrigger=LostFocus}"/>
+                                <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource SubTextBrush}"
+                                           Text="Your Fortnite keys for this weapon's slot, e.g. 2  or  2, Mouse4"/>
+                            </StackPanel>
+                            <TextBlock Margin="110,8,0,0" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                                       Text="Fortnite's default keys: 1 = pickaxe, 2–6 = weapon slots 1–5. Put your shotgun's and sniper's slot keys on those crosshairs and the rest on Default. Scroll-wheel weapon switching can't be detected."/>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="240"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="44"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Style" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="CrosshairStyleCombo" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4" SelectedItem="{Binding Style, Mode=TwoWay}"/>
+
+                                <TextBlock Grid.Row="1" Text="Colour" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6">
+                                    <Button Tag="#00FF66" Background="#00FF66" Width="24" Height="24" Padding="0" Margin="0,0,6,0" Click="CrosshairColor_Click"/>
+                                    <Button Tag="#00FFFF" Background="#00FFFF" Width="24" Height="24" Padding="0" Margin="0,0,6,0" Click="CrosshairColor_Click"/>
+                                    <Button Tag="#FF2D2D" Background="#FF2D2D" Width="24" Height="24" Padding="0" Margin="0,0,6,0" Click="CrosshairColor_Click"/>
+                                    <Button Tag="#FFE600" Background="#FFE600" Width="24" Height="24" Padding="0" Margin="0,0,6,0" Click="CrosshairColor_Click"/>
+                                    <Button Tag="#FF00FF" Background="#FF00FF" Width="24" Height="24" Padding="0" Margin="0,0,6,0" Click="CrosshairColor_Click"/>
+                                    <Button Tag="#FFFFFF" Background="#FFFFFF" Width="24" Height="24" Padding="0" Margin="0,0,10,0" Click="CrosshairColor_Click"/>
+                                    <TextBox Width="90" Text="{Binding Color, UpdateSourceTrigger=LostFocus}"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="2" Text="Length" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="2" Grid.Column="1" Minimum="1" Maximum="40" Value="{Binding Size, Mode=TwoWay}" Margin="0,6" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Size}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="3" Text="Thickness" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="3" Grid.Column="1" Minimum="1" Maximum="10" Value="{Binding Thickness, Mode=TwoWay}" Margin="0,6" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding Thickness}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="4" Text="Gap" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="4" Grid.Column="1" Minimum="0" Maximum="30" Value="{Binding Gap, Mode=TwoWay}" Margin="0,6" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding Gap}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="5" Text="Opacity" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="5" Grid.Column="1" Minimum="0.2" Maximum="1" Value="{Binding Opacity, Mode=TwoWay}" Margin="0,6" SmallChange="0.05" LargeChange="0.1"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding Opacity, StringFormat={}{0:P0}}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="6" Text="Move left/right" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="6" Grid.Column="1" Minimum="-60" Maximum="60" Value="{Binding OffsetX, Mode=TwoWay}" Margin="0,6" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                <TextBlock Grid.Row="6" Grid.Column="2" Text="{Binding OffsetX}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="7" Text="Move up/down" VerticalAlignment="Center"/>
+                                <Slider Grid.Row="7" Grid.Column="1" Minimum="-60" Maximum="60" Value="{Binding OffsetY, Mode=TwoWay}" Margin="0,6" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                <TextBlock Grid.Row="7" Grid.Column="2" Text="{Binding OffsetY}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                                <StackPanel Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6">
+                                    <CheckBox Content="Black outline" IsChecked="{Binding Outline, Mode=TwoWay}" Margin="0,0,16,0"/>
+                                    <CheckBox Content="Centre dot" IsChecked="{Binding CenterDot, Mode=TwoWay}"/>
+                                </StackPanel>
+                                <Button Grid.Row="9" Grid.Column="1" Content="Re-centre" HorizontalAlignment="Left" Margin="0,6,0,0" Click="CrosshairRecenter_Click"/>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" VerticalAlignment="Top">
+                            <StackPanel>
+                                <TextBlock Text="Preview" Margin="14,10" Foreground="{StaticResource SubTextBrush}"/>
+                                <Border Height="200" CornerRadius="0,0,10,10" ClipToBounds="True">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#7FB2E5" Offset="0"/>
+                                            <GradientStop Color="#C9B48A" Offset="0.55"/>
+                                            <GradientStop Color="#5E7D3A" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Canvas x:Name="CrosshairPreview" Width="238" Height="200"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- FPS benchmark -->
+            <ScrollViewer x:Name="BenchmarkPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="FPS Benchmark" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Measure your real in-game FPS before and after tweaks. Start a run, then play normally (same mode and map each time for a fair comparison). Uses Intel PresentMon, a free open-source frame recorder. Needs administrator rights."/>
+                    <Border x:Name="PresentMonCard" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Download (1 MB)" Style="{StaticResource PrimaryButton}" Margin="0" Click="DownloadPresentMon_Click"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Center"
+                                       Text="PresentMon isn't installed yet. SpudBoost downloads it once from Intel's official GitHub page (signed by Intel)."/>
+                        </DockPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <WrapPanel>
+                                <StackPanel Margin="0,0,16,8">
+                                    <TextBlock Text="Game" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="BenchGameCombo" Width="240"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,16,8">
+                                    <TextBlock Text="Length" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="BenchLengthCombo" Width="120"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,16,8">
+                                    <TextBlock Text="Label" Foreground="{StaticResource SubTextBrush}" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="BenchLabelBox" Width="220" Text="Before tweaks"/>
+                                </StackPanel>
+                            </WrapPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button x:Name="BenchStartButton" Content="Start measuring" Style="{StaticResource PrimaryButton}" Click="StartBenchmark_Click"/>
+                                <TextBlock x:Name="BenchStatus" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <DockPanel Margin="0,16,0,10">
+                        <Button DockPanel.Dock="Right" Content="Clear history" Margin="0" Click="ClearBenchmarks_Click"/>
+                        <TextBlock Text="Results" Style="{StaticResource SectionTitle}" Margin="0"/>
+                    </DockPanel>
+                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10"
+                               Text="Average FPS is overall smoothness. 1% and 0.1% lows are your worst moments (stutters), which often matter more."/>
+                    <ItemsControl x:Name="BenchList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="18,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold">
+                                                <Run Text="{Binding Label, Mode=OneWay}"/><Run Text="  ·  " Foreground="{StaticResource SubTextBrush}"/><Run Text="{Binding Game, Mode=OneWay}" Foreground="{StaticResource SubTextBrush}"/>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding When}" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Summary}" FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Settings -->
+            <ScrollViewer x:Name="SettingsPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}" Text="How SpudBoost runs on this PC."/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <CheckBox x:Name="TrayBox" Content="Keep running in the system tray when the window is closed" Click="TrayBox_Click"/>
+                            <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,8"
+                                       Text="Game Boost and the crosshair only work while SpudBoost is running. Right-click the orange potato icon next to the clock to exit."/>
+                            <CheckBox x:Name="StartWithWindowsBox" Content="Start SpudBoost when I sign in (hidden in the tray)" Click="StartWithWindowsBox_Click"/>
+                            <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,8"
+                                       Text="Starts without administrator rights. Game Boost and the crosshair work without them."/>
+                            <CheckBox x:Name="AutoRestorePointBox" Content="Create a Windows restore point before the first tweak" Click="AutoRestorePointBox_Click"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button x:Name="DownloadUpdateButton" Content="Download update" Style="{StaticResource PrimaryButton}"
+                                        Visibility="Collapsed" Click="DownloadUpdate_Click"/>
+                                <Button Content="Check for updates" Margin="0" Click="CheckUpdates_Click"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock x:Name="VersionText" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="UpdateText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,4,12,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Column="1" Grid.Row="1" Background="{StaticResource SidebarBrush}" Padding="36,8">
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource SubTextBrush}" Text="Ready." TextTrimming="CharacterEllipsis"/>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- Windows Forms only for the system tray icon (WPF has none) -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <!-- Shown name and exe name; code namespaces and the data folder keep the original "GameTweaks" -->
+    <AssemblyName>SpudBoost</AssemblyName>
+    <Product>SpudBoost</Product>
+    <Company>SpudBoost</Company>
+    <AssemblyTitle>SpudBoost</AssemblyTitle>
+    <Version>1.1.0</Version>
+    <Description>Windows and game performance tweaks with one-click undo.</Description>
+  </PropertyGroup>
+
+  <!-- dotnet publish -c Release: one self-contained GameTweaks.exe that runs without installing .NET -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Keep WPF types unambiguous: Windows Forms is referenced only for NotifyIcon -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Resource Include="app.ico" />
+    <Resource Include="logo.png" />
+  </ItemGroup>
+
+</Project>

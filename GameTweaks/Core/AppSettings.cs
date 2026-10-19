@@ -1,0 +1,112 @@
+﻿using System.IO;
+using System.Text.Json;
+
+namespace GameTweaks.Core;
+
+/// <summary>User preferences, stored next to the backups.</summary>
+public sealed class AppSettings
+{
+    public bool BoostEnabled { get; set; }
+    public bool RaiseGamePriority { get; set; } = true;
+    public bool LowerBackgroundApps { get; set; } = true;
+
+    public List<string> GameProcesses { get; set; } =
+    [
+        "FortniteClient-Win64-Shipping", "VALORANT-Win64-Shipping", "cs2", "r5apex",
+        "RobloxPlayerBeta", "Overwatch", "RocketLeague", "Minecraft.Windows", "javaw",
+    ];
+
+    public List<string> BackgroundProcesses { get; set; } =
+    [
+        "chrome", "msedge", "firefox", "opera", "OneDrive", "Spotify", "steamwebhelper", "EpicWebHelper",
+    ];
+
+    public bool CloseAppsOnGameStart { get; set; }
+
+    /// <summary>Apps that are safe to close for gaming: they restart themselves or reopen when needed.</summary>
+    public List<string> AppsToClose { get; set; } =
+    [
+        "OneDrive", "ms-teams", "Teams", "Widgets", "WidgetService", "PhoneExperienceHost", "CrossDeviceResume",
+        "GameBar", "XboxPcAppFT", "Copilot", "YourPhone", "Cortana", "AdobeARM", "CCXProcess",
+    ];
+
+    public string DnsProvider { get; set; } = "Cloudflare";
+
+    /// <summary>Closing the window hides SpudBoost to the system tray so Game Boost keeps working.</summary>
+    public bool MinimizeToTray { get; set; } = true;
+    public bool TrayHintShown { get; set; }
+
+    /// <summary>Create a Windows restore point before the first tweak is applied.</summary>
+    public bool AutoRestorePoint { get; set; } = true;
+
+    /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
+    public string? LastNotifiedUpdate { get; set; }
+
+    public CrosshairSettings Crosshair { get; set; } = new();
+
+    static string FilePath => Path.Combine(BackupStore.Folder, "settings.json");
+
+    public static AppSettings Load()
+    {
+        try
+        {
+            if (File.Exists(FilePath))
+                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new();
+        }
+        catch (JsonException) { }
+        return new();
+    }
+
+    public void Save()
+    {
+        Directory.CreateDirectory(BackupStore.Folder);
+        File.WriteAllText(FilePath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+    }
+}
+
+/// <summary>How one crosshair looks.</summary>
+public class CrosshairLook
+{
+    public string Style { get; set; } = "Cross";
+    public string Color { get; set; } = "#00FF66";
+    public double Size { get; set; } = 10;
+    public double Thickness { get; set; } = 2;
+    public double Gap { get; set; } = 3;
+    public double Opacity { get; set; } = 1;
+    public bool Outline { get; set; } = true;
+    public bool CenterDot { get; set; }
+}
+
+/// <summary>A crosshair used after pressing one of its keys (e.g. the slot your shotgun is in).</summary>
+public sealed class WeaponCrosshair : CrosshairLook
+{
+    public string Name { get; set; } = "";
+    public bool Enabled { get; set; } = true;
+    /// <summary>Keys that switch to this crosshair, e.g. "2, Mouse4".</summary>
+    public string Keys { get; set; } = "";
+}
+
+/// <summary>The custom crosshair overlay. Its own look fields are the default crosshair.</summary>
+public sealed class CrosshairSettings : CrosshairLook
+{
+    public bool Enabled { get; set; }
+    /// <summary>Only show while Fortnite is the window in front (hidden on the desktop and when alt-tabbed).</summary>
+    public bool OnlyInGame { get; set; } = true;
+    public double OffsetX { get; set; }
+    public double OffsetY { get; set; }
+
+    /// <summary>Keys that switch back to the default crosshair (Fortnite's default pickaxe and other slots).</summary>
+    public string DefaultKeys { get; set; } = "1, 3, 4, 5";
+
+    /// <summary>Hide while right mouse is held, so a scope's own reticle is clear.</summary>
+    public bool HideWhileAiming { get; set; } = true;
+
+    /// <summary>Extra gap (px) while left mouse is held, like weapon bloom. 0 = off.</summary>
+    public double FireSpread { get; set; }
+
+    public List<WeaponCrosshair> Weapons { get; set; } =
+    [
+        new() { Name = "Shotgun", Keys = "2", Style = "Circle + cross", Size = 6, Gap = 16, Thickness = 2, CenterDot = true },
+        new() { Name = "Sniper", Keys = "6", Style = "Dot", Thickness = 2, Color = "#FF2D2D" },
+    ];
+}
