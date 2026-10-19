@@ -58,7 +58,7 @@ public partial class MainWindow : Window
 
         _systemTweaks = TweakCatalog.System(() => _settings.GameProcesses);
         _networkTweaks = TweakCatalog.Network(_settings.DnsProvider);
-        _fortniteTweaks = TweakCatalog.Fortnite();
+        _fortniteTweaks = TweakCatalog.Fortnite(() => _settings.PotatoFlatness);
         FortniteTweakList.ItemsSource = _fortniteTweaks;
         FortniteGpuCard.Visibility = _fortniteTweaks.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         AmdPotatoCard.Visibility = HasAmdGpu() ? Visibility.Visible : Visibility.Collapsed;

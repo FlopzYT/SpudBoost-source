@@ -26,27 +26,36 @@ public sealed class NvidiaProfileTweak : Tweak
         [0x007BA09E] = 1,          // Maximum pre-rendered frames: 1
     };
 
-    /// <summary>Blurry, flat "potato" textures: the driver uses its lowest-detail texture copies everywhere.</summary>
-    public static readonly IReadOnlyDictionary<uint, uint> PotatoTextureSettings = new Dictionary<uint, uint>
+    /// <summary>Flatness levels for potato textures: 1 = Light (+1), 2 = Medium (+2), 3 = Max (+3).</summary>
+    public static readonly string[] FlatnessLevels = ["Light (+1)", "Medium (+2)", "Max (+3)"];
+
+    /// <summary>
+    /// Blurry, flat "potato" textures: the driver uses lower-detail texture copies. Anisotropic filtering is left to the game,
+    /// because forcing it off smears ground seen at an angle (hills, ramps) into mush for almost no FPS gain.
+    /// </summary>
+    public static IReadOnlyDictionary<uint, uint> PotatoTextureSettings(int flatness) => new Dictionary<uint, uint>
     {
-        [0x00738E8F] = 24, // Texture LOD bias (DX): +3.0, the maximum
-        [0x00638E8F] = 0,  // Driver-controlled LOD bias: off, so the +3.0 above is used
+        [0x00738E8F] = (uint)(Math.Clamp(flatness, 1, 3) * 8), // Texture LOD bias (DX) in 1/8 steps: +1, +2 or +3
+        [0x00638E8F] = 0,  // Driver-controlled LOD bias: off, so the bias above is used
         [0x0019BB68] = 1,  // Negative LOD bias: clamp
         [0x00CE2691] = 20, // Texture filtering quality: High performance
         [0x002ECAF2] = 0,  // Trilinear optimization: on
-        [0x0084CD70] = 1,  // Anisotropic filter optimization: on
-        [0x00E73211] = 1,  // Anisotropic sample optimization: on
-        [0x10D2BB16] = 1,  // Anisotropic filtering mode: driver-controlled...
-        [0x101E61A9] = 1,  // ...and set to off (linear)
     };
 
-    public required IReadOnlyDictionary<uint, uint> Settings { get; init; }
+    /// <summary>Settings 1.3.1 and earlier forced (anisotropic filtering off); put back to the originals when applying or undoing.</summary>
+    public static readonly uint[] RetiredPotatoSettings = [0x10D2BB16, 0x101E61A9, 0x0084CD70, 0x00E73211];
+
+    /// <summary>The settings to apply, read at apply time (so e.g. the flatness level can change).</summary>
+    public required Func<IReadOnlyDictionary<uint, uint>> Settings { get; init; }
+
+    /// <summary>Settings this tweak no longer changes but older versions did; restored to their originals.</summary>
+    public IReadOnlyCollection<uint> RetiredSettings { get; init; } = [];
     public required Func<IEnumerable<string>> GameProcesses { get; init; }
 
     /// <summary>File name (in the data folder) holding the profiles as they were before this tweak.</summary>
     public required string BackupFileName { get; init; }
 
-    IReadOnlyDictionary<uint, uint> Desired => Settings;
+    IReadOnlyDictionary<uint, uint> Desired => Settings();
 
     static string ToolFolder => Path.Combine(BackupStore.Folder, "Tools", "nvidiaProfileInspector");
     static string ToolExe => Path.Combine(ToolFolder, "nvidiaProfileInspector.exe");
@@ -74,10 +83,17 @@ public sealed class NvidiaProfileTweak : Tweak
                 "Program settings, pick the game, change any one setting and click Apply. Then try again.");
 
         if (!HasBackup) Write(OriginalBackup, targets.Select(p => new XElement(p)));
+        var originals = Originals();
 
+        var desired = Desired;
         foreach (var profile in targets)
-        foreach (var (id, value) in Desired)
-            SetValue(profile, id, value);
+        {
+            foreach (var (id, value) in desired)
+                SetValue(profile, id, value);
+            if (originals.TryGetValue(profile.Element("ProfileName")?.Value ?? "", out var original))
+                foreach (var id in RetiredSettings)
+                    RestoreValue(profile, original, id);
+        }
 
         var import = Path.Combine(Path.GetTempPath(), $"SpudBoost-nvidia-{Guid.NewGuid():N}.nip");
         try
@@ -92,8 +108,7 @@ public sealed class NvidiaProfileTweak : Tweak
     protected override void RevertCore()
     {
         EnsureTool();
-        var originals = XElement.Parse(File.ReadAllText(OriginalBackup)).Elements("Profile")
-            .ToDictionary(p => p.Element("ProfileName")?.Value ?? "", p => p);
+        var originals = Originals();
         var current = Export().Elements("Profile")
             .Where(p => originals.ContainsKey(p.Element("ProfileName")?.Value ?? ""))
             .ToList();
@@ -101,11 +116,8 @@ public sealed class NvidiaProfileTweak : Tweak
         foreach (var profile in current)
         {
             var original = originals[profile.Element("ProfileName")!.Value];
-            foreach (var id in Desired.Keys)
-            {
-                if (Value(original, id) is { } before) SetValue(profile, id, before);
-                else RemoveValue(profile, id);
-            }
+            foreach (var id in Desired.Keys.Concat(RetiredSettings))
+                RestoreValue(profile, original, id);
         }
 
         if (current.Count > 0)
@@ -119,6 +131,19 @@ public sealed class NvidiaProfileTweak : Tweak
             finally { File.Delete(import); }
         }
         File.Delete(OriginalBackup);
+    }
+
+    /// <summary>The game profiles as they were before this tweak, by profile name.</summary>
+    Dictionary<string, XElement> Originals() =>
+        XElement.Parse(File.ReadAllText(OriginalBackup)).Elements("Profile")
+            .GroupBy(p => p.Element("ProfileName")?.Value ?? "")
+            .ToDictionary(g => g.Key, g => g.First());
+
+    /// <summary>Puts one setting back to its value in <paramref name="original"/>, or removes it if it wasn't set there.</summary>
+    static void RestoreValue(XElement profile, XElement original, uint id)
+    {
+        if (Value(original, id) is { } before) SetValue(profile, id, before);
+        else RemoveValue(profile, id);
     }
 
     static void RemoveValue(XElement profile, uint id) =>

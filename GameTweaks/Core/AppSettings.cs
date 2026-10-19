@@ -45,6 +45,9 @@ public sealed class AppSettings
     /// <summary>Fortnite potato settings to put back automatically if Fortnite resets them; null = off.</summary>
     public GameTweaks.Fortnite.FortniteSnapshot? KeptFortniteSettings { get; set; }
 
+    /// <summary>NVIDIA potato textures strength: 1 = Light (+1), 2 = Medium (+2), 3 = Max (+3).</summary>
+    public int PotatoFlatness { get; set; } = 2;
+
     /// <summary>Clean temp files, logs and crash dumps automatically once a week.</summary>
     public bool AutoCleanWeekly { get; set; }
     public DateTime LastAutoClean { get; set; }

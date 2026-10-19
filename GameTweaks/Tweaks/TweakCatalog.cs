@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using GameTweaks.Core;
 using Microsoft.Win32;
 
@@ -46,7 +46,7 @@ public static class TweakCatalog
                 Id = "nvidia-profiles",
                 Name = "NVIDIA: performance driver settings for your games",
                 Description = "Sets maximum-performance power, unlimited shader cache (less stutter) and Ultra low latency on the NVIDIA profiles of the games in your Game Boost list. Downloads NVIDIA Profile Inspector (open source, 0.4 MB) on first use.",
-                Settings = NvidiaProfileTweak.PerformanceSettings,
+                Settings = () => NvidiaProfileTweak.PerformanceSettings,
                 BackupFileName = "nvidia-original.nip",
                 GameProcesses = gameProcesses,
                 RequiresAdmin = true,
@@ -72,7 +72,7 @@ public static class TweakCatalog
     }
 
     /// <summary>Tweaks shown on the Fortnite Potato page.</summary>
-    public static List<Tweak> Fortnite()
+    public static List<Tweak> Fortnite(Func<int> flatness)
     {
         if (!NvidiaProfileTweak.HasNvidiaGpu || EpicGames.FortniteExe == null) return [];
         return
@@ -81,10 +81,11 @@ public static class TweakCatalog
             {
                 Id = "nvidia-potato",
                 Name = "NVIDIA potato textures",
-                Description = "Makes your NVIDIA driver use the blurriest, lowest-detail version of every texture in Fortnite (texture LOD bias +3, " +
-                              "high-performance filtering, anisotropic filtering off). Surfaces turn into flat colours. Changes only the driver, not the game. " +
+                Description = "Makes your NVIDIA driver use lower-detail, blurrier textures in Fortnite (texture LOD bias, strength set by Flatness below, " +
+                              "high-performance filtering). Surfaces turn into flat colours while hills and the ground stay readable. Changes only the driver, not the game. " +
                               "Needs administrator rights; applies next time Fortnite starts.",
-                Settings = NvidiaProfileTweak.PotatoTextureSettings,
+                Settings = () => NvidiaProfileTweak.PotatoTextureSettings(flatness()),
+                RetiredSettings = NvidiaProfileTweak.RetiredPotatoSettings,
                 BackupFileName = "nvidia-potato.nip",
                 GameProcesses = () => ["FortniteClient-Win64-Shipping"],
                 RequiresAdmin = true,

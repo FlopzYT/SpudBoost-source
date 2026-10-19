@@ -524,6 +524,12 @@
                         <StackPanel x:Name="FortniteGpuCard" Visibility="Collapsed">
                             <TextBlock Text="Flat potato textures (NVIDIA driver)" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
                             <ItemsControl x:Name="FortniteTweakList" ItemTemplate="{StaticResource TweakCard}"/>
+                            <StackPanel Orientation="Horizontal" Margin="4,0,0,4">
+                                <TextBlock Text="Flatness" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="FlatnessCombo" Width="140" SelectionChanged="Flatness_SelectionChanged"/>
+                                <TextBlock Text="Light keeps more detail, Max is the flattest. Medium is a good balance; hills stay readable at every level."
+                                           VerticalAlignment="Center" Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <StackPanel x:Name="AmdPotatoCard" Visibility="Collapsed">
@@ -535,7 +541,7 @@
                                     <TextBlock Text="AMD Software: Adrenalin → Gaming → Games → Fortnite" FontWeight="SemiBold"/>
                                     <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
                                         • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                        • Anisotropic Filtering: <Run Text="Disabled" Foreground="{StaticResource AccentBrush}"/>,  Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                        • Anisotropic Filtering: <Run Text="Use application settings" Foreground="{StaticResource AccentBrush}"/> (turning it off smears hills and the ground),  Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
                                         • Tessellation Mode: <Run Text="Override application settings" Foreground="{StaticResource AccentBrush}"/>,  Maximum Tessellation Level: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
                                         • Radeon Image Sharpening: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/> (keeps edges soft and flat)<LineBreak/>
                                         • Optional: Radeon Super Resolution <Run Text="On" Foreground="{StaticResource AccentBrush}"/>, then pick a lower resolution in Fortnite for an even blockier look and more FPS
@@ -553,12 +559,12 @@
                                 <TextBlock Text="NVIDIA Control Panel → Manage 3D settings → Program settings" FontWeight="SemiBold"/>
                                 <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
                                     • Texture filtering - Quality: <Run Text="High performance" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                    • Anisotropic filtering: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/>,  Antialiasing - FXAA: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                    • Anisotropic filtering: <Run Text="Application-controlled" Foreground="{StaticResource AccentBrush}"/> (turning it off smears hills and the ground),  Antialiasing - FXAA: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
                                     • Low latency mode: <Run Text="Ultra" Foreground="{StaticResource AccentBrush}"/>,  Power management: <Run Text="Prefer maximum performance" Foreground="{StaticResource AccentBrush}"/>
                                 </TextBlock>
                                 <TextBlock Text="AMD Software: Adrenalin → Gaming → Fortnite" FontWeight="SemiBold"/>
                                 <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                    • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/>,  Anisotropic Filtering: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
+                                    • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/>,  Anisotropic Filtering: <Run Text="Use application settings" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
                                     • Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/>,  Radeon Anti-Lag: <Run Text="On" Foreground="{StaticResource AccentBrush}"/>
                                 </TextBlock>
                                 <StackPanel Orientation="Horizontal">
