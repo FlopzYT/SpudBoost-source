@@ -19,6 +19,11 @@ public static class PingTester
         ("Middle East", "ping-me.ds.on.epicgames.com"),
     ];
 
+    public static IEnumerable<string> RegionNames => Regions.Select(r => r.Name);
+
+    /// <summary>The ping endpoint for a region name (falls back to NA-East).</summary>
+    public static string HostFor(string region) => Regions.FirstOrDefault(r => r.Name == region).Host ?? Regions[0].Host;
+
     public static async Task<List<PingResult>> RunAsync(int count = 15)
     {
         var results = await Task.WhenAll(Regions.Select(r => Measure(r.Name, r.Host, count)));

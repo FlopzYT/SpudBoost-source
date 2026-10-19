@@ -1,8 +1,8 @@
-; SpudBoost installer (Inno Setup 6). Build with:  ISCC.exe installer\SpudBoost.iss
+﻿; SpudBoost installer (Inno Setup 6). Build with:  ISCC.exe installer\SpudBoost.iss
 ; Expects the published app in ..\release\SpudBoost.exe (dotnet publish GameTweaks -c Release -o release).
 
 #define AppName "SpudBoost"
-#define AppVersion "1.2.0"
+#define AppVersion "1.3.0"
 #define AppExe "SpudBoost.exe"
 
 [Setup]

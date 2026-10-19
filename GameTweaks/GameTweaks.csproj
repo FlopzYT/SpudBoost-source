@@ -14,7 +14,7 @@
     <Product>SpudBoost</Product>
     <Company>SpudBoost</Company>
     <AssemblyTitle>SpudBoost</AssemblyTitle>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <Description>Windows and game performance tweaks with one-click undo.</Description>
   </PropertyGroup>
 

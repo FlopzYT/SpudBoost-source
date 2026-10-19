@@ -100,6 +100,7 @@ public partial class MainWindow : Window
         _crosshair = new CrosshairController(_settings);
         InitCrosshair();
         InitPages();
+        InitPresets();
 
         UpdateTray();
 
@@ -690,7 +691,9 @@ public partial class MainWindow : Window
         try
         {
             var backup = _fortnite.Save();
-            SetStatus($"Saved to Fortnite. Previous file backed up as {Path.GetFileName(backup)}.");
+            _settings.KeptFortniteSettings = KeepFortniteBox.IsChecked == true ? _fortnite.Snapshot() : null;
+            _settings.Save();
+            SetStatus($"Saved to Fortnite{(KeepFortniteBox.IsChecked == true ? " and SpudBoost will keep these settings" : "")}. Previous file backed up as {Path.GetFileName(backup)}.");
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException) { ShowError(ex); }
     }

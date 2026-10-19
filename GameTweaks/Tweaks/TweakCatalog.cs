@@ -304,6 +304,14 @@ public static class TweakCatalog
         },
         new AdapterPropertyTweak
         {
+            Id = "nic-lso",
+            Name = "Disable Large Send Offload",
+            Description = "Stops the network adapter batching outgoing data into big chunks, a known cause of ping spikes and delayed packets on many adapters. Your connection drops for a few seconds while this applies.",
+            Properties = ["Large Send Offload V2 (IPv4)", "Large Send Offload V2 (IPv6)", "Large Send Offload (IPv4)", "Large Send Offload v2 (IPv4)", "Large Send Offload v2 (IPv6)"],
+            RequiresAdmin = true,
+        },
+        new AdapterPropertyTweak
+        {
             Id = "nic-interrupt",
             Name = "Disable interrupt moderation",
             Description = "Handles each network packet immediately instead of in batches. Slightly lower latency, slightly more CPU use. Your connection drops for a few seconds while this applies.",

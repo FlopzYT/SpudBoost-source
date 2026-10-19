@@ -33,6 +33,49 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        <!-- A preset as a clickable card (Tweaks page and welcome screen) -->
+        <DataTemplate x:Key="PresetCard">
+            <Button Click="Preset_Click" Margin="0,0,8,8" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="10" Padding="14,10" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="Scale"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1.02" Duration="0:0:0.12"/>
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1.02" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15"/>
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+                <StackPanel>
+                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}">
+                        <Run Text="{Binding Emoji, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding Name, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource SubTextBrush}" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -146,6 +189,14 @@
                             </ItemsControl>
                         </StackPanel>
                     </Border>
+                    <TextBlock Text="One-click presets" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                    <ItemsControl x:Name="PresetList" ItemTemplate="{StaticResource PresetCard}" Margin="0,0,-8,4">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="3"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                     <DockPanel Margin="0,0,0,8">
                         <Button DockPanel.Dock="Left" Content="Apply all" Style="{StaticResource PrimaryButton}" Click="ApplyAllSystem_Click"
                                 ToolTip="Turns on every tweak except ones that need extra confirmation, like Memory Integrity."/>
@@ -459,6 +510,9 @@
                                 <CheckBox Content="Lock settings file (read-only) so Fortnite can't reset it" IsChecked="{Binding LockReadOnly, Mode=TwoWay}"/>
                                 <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,0"
                                            Text="While locked, changes you make in Fortnite's own settings menu won't be saved. Unlock it here to change settings in-game."/>
+                                <CheckBox x:Name="KeepFortniteBox" Content="Keep these settings: put them back automatically if Fortnite resets them" Margin="0,8,0,4"/>
+                                <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,0"
+                                           Text="Fortnite often resets graphics after big updates. SpudBoost checks while Fortnite is closed and restores what you saved here (with a backup). Takes effect when you click Save to Fortnite. Untick it before changing settings in-game."/>
                             </StackPanel>
                         </Border>
 
@@ -793,6 +847,8 @@
                         <Button Content="Scan again" Click="ScanCleaner_Click"/>
                         <TextBlock x:Name="CleanerTotal" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{StaticResource SubTextBrush}"/>
                     </StackPanel>
+                    <CheckBox x:Name="AutoCleanBox" Margin="0,0,0,10" Click="AutoCleanBox_Click"
+                              Content="Clean automatically once a week (temp files, logs and crash dumps only; never replays or shader caches)"/>
                     <ItemsControl x:Name="CleanerList">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -899,6 +955,27 @@
                             </StackPanel>
                         </Border>
                     </UniformGrid>
+                    <!-- In-game stats overlay settings -->
+                    <Border x:Name="StatsOverlayCard" Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel>
+                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                                <StackPanel>
+                                    <TextBlock Text="In-game stats overlay" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Shows GPU temperature and load, CPU and RAM use and live ping in a corner while Fortnite is the window in front (Windowed fullscreen)."
+                                               Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <WrapPanel Margin="0,10,0,0">
+                                <TextBlock Text="Corner" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <ComboBox x:Name="OverlayCornerCombo" Width="130" SelectedItem="{Binding Corner, Mode=TwoWay}" Margin="0,0,16,0"/>
+                                <TextBlock Text="Ping region" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <ComboBox x:Name="OverlayRegionCombo" Width="130" SelectedItem="{Binding PingRegion, Mode=TwoWay}" Margin="0,0,16,0"/>
+                                <TextBlock Text="Show/hide key" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBox Width="60" Text="{Binding ToggleKey, UpdateSourceTrigger=LostFocus}"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
                     <Border Style="{StaticResource Card}">
                         <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="20"
                                    Text="How to read it: if GPU usage stays near 95–100% in game, your graphics card is the limit, so lower graphics settings help. If GPU usage is well below that while one CPU core is busy, your CPU is the limit: graphics settings won't help much, but closing background apps, XMP and the CPU tweaks will. GPU temperatures above about 85 °C can mean dust or poor airflow."/>
@@ -1023,5 +1100,37 @@
         <Border Grid.Column="1" Grid.Row="2" Background="{StaticResource SidebarBrush}" Padding="24,6">
             <TextBlock x:Name="StatusText" Foreground="{StaticResource SubTextBrush}" Text="Ready." TextTrimming="CharacterEllipsis"/>
         </Border>
+
+        <!-- First-run welcome: pick a preset or skip -->
+        <Grid x:Name="WelcomeOverlay" Grid.ColumnSpan="2" Grid.RowSpan="3" Visibility="Collapsed" Background="#D90B0D11">
+            <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" CornerRadius="14"
+                    Padding="28,24" MaxWidth="760" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <Image Source="logo.png" Width="40" Height="40" Margin="0,0,12,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock FontSize="22" FontWeight="Bold">
+                                <Run Text="Welcome to " Foreground="{StaticResource TextBrush}"/><Run Text="Spud" Foreground="{StaticResource TextBrush}"/><Run Text="Boost" Foreground="{StaticResource AccentBrush}"/>
+                            </TextBlock>
+                            <TextBlock Text="Pick a starting point. You can change or undo everything later." Foreground="{StaticResource SubTextBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <ItemsControl x:Name="WelcomePresetList" ItemTemplate="{StaticResource PresetCard}" Margin="0,14,-8,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="3"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <TextBlock x:Name="WelcomeAdminNote" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource WarnBrush}" Margin="0,4,0,0"
+                               Text="Tip: some tweaks need administrator rights. Restart as admin first to apply the full preset; this screen will show again."/>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Content="Skip, I'll choose tweaks myself" Click="SkipWelcome_Click"/>
+                        <Button Content="Restart as admin" Style="{StaticResource PrimaryButton}" Click="RestartAdmin_Click"
+                                Visibility="{Binding Visibility, ElementName=WelcomeAdminNote}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

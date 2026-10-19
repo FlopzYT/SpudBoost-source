@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,10 +19,19 @@ public partial class MainWindow
     SharedProfile? _previewProfile;
     string? _previewCode;
 
+    Overlay.StatsOverlayController? _statsOverlay;
+
     void InitPages()
     {
         CleanerList.ItemsSource = _cleanTargets;
         MonitorPage.DataContext = _monitor;
+        _statsOverlay = new Overlay.StatsOverlayController(_settings);
+        StatsOverlayCard.DataContext = _statsOverlay;
+        OverlayCornerCombo.ItemsSource = Overlay.StatsOverlayController.Corners;
+        OverlayRegionCombo.ItemsSource = PingTester.RegionNames.ToList();
+        Application.Current.Exit += (_, _) => _statsOverlay.Shutdown();
+        KeepFortniteBox.IsChecked = _settings.KeptFortniteSettings != null;
+        StartBackgroundChores();
         if (!SystemMonitor.HasNvidiaSmi)
             MonitorSubtitle.Text += " GPU readings need an NVIDIA graphics card.";
         _monitorTimer.Tick += async (_, _) => { if (IsVisible) await _monitor.UpdateAsync(); };
@@ -43,6 +53,75 @@ public partial class MainWindow
                 root.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)));
             }
         };
+    }
+
+    // ---- Background chores: keep Fortnite settings, weekly clean, driver reminder ----
+
+    readonly DispatcherTimer _choreTimer = new() { Interval = TimeSpan.FromMinutes(1) };
+    Fortnite.FortniteGuard? _fortniteGuard;
+    int _choreTicks;
+
+    void StartBackgroundChores()
+    {
+        _fortniteGuard = new Fortnite.FortniteGuard(_settings);
+        AutoCleanBox.IsChecked = _settings.AutoCleanWeekly;
+        _choreTimer.Tick += async (_, _) => await RunChoresAsync();
+        _choreTimer.Start();
+    }
+
+    async Task RunChoresAsync()
+    {
+        _choreTicks++;
+
+        // Every minute: put Fortnite potato settings back if the game reset them.
+        try
+        {
+            if (await Task.Run(_fortniteGuard!.CheckAndRestore))
+                _tray.ShowHint("Fortnite had reset your potato settings. SpudBoost put them back (backup saved).");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException) { }
+
+        // Every hour: weekly auto-clean and the monthly driver reminder.
+        if (_choreTicks % 60 != 2) return;
+
+        if (_settings.AutoCleanWeekly && DateTime.Now - _settings.LastAutoClean > TimeSpan.FromDays(7))
+        {
+            long freed = 0;
+            foreach (var t in Cleaner.Targets().Where(t => t.Selected)) // the safe defaults: temp, logs, crash dumps
+            {
+                try { freed += await Task.Run(() => Cleaner.Clean(t)); }
+                catch (InvalidOperationException) { } // its game is running; try next week
+            }
+            _settings.LastAutoClean = DateTime.Now;
+            _settings.Save();
+            if (freed > 1L << 20) _tray.ShowHint($"Weekly clean freed {Cleaner.FormatSize(freed)}.");
+        }
+
+        if (DateTime.Now - _settings.LastDriverReminder > TimeSpan.FromDays(30))
+        {
+            var days = await Task.Run(GpuDriverAgeDays);
+            if (days > 90)
+            {
+                _tray.ShowHint($"Your graphics driver is {days / 30} months old. New drivers often add FPS and fix stutter. Update it from NVIDIA, AMD or Intel.");
+                _settings.LastDriverReminder = DateTime.Now;
+                _settings.Save();
+            }
+        }
+    }
+
+    static int GpuDriverAgeDays()
+    {
+        var (code, output) = Shell.PowerShell(
+            "$g = Get-CimInstance Win32_VideoController | Where-Object { $_.CurrentRefreshRate -gt 0 } | Sort-Object AdapterRAM -Descending | Select-Object -First 1; " +
+            "if ($g.DriverDate) { [int]((Get-Date) - $g.DriverDate).TotalDays }");
+        return code == 0 && int.TryParse(output.Trim(), out var days) ? days : 0;
+    }
+
+    void AutoCleanBox_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.AutoCleanWeekly = AutoCleanBox.IsChecked == true;
+        _settings.Save();
+        SetStatus(_settings.AutoCleanWeekly ? "Temp files, logs and crash dumps will be cleaned automatically once a week." : "Weekly cleaning turned off.");
     }
 
     // ---- Tweaks page: sections and search ----

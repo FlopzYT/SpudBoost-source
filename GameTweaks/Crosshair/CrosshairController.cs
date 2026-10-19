@@ -1,6 +1,4 @@
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using GameTweaks.Core;
 
@@ -13,19 +11,13 @@ namespace GameTweaks.Crosshair;
 /// </summary>
 public sealed class CrosshairController : ObservableObject
 {
-    const string Fortnite = "FortniteClient-Win64-Shipping";
     const int VkLeftButton = 0x01, VkRightButton = 0x02;
-
-    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
-    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
-    [DllImport("user32.dll")] static extern short GetAsyncKeyState(int vk);
 
     readonly AppSettings _settings;
     // ~60 checks a second so switching feels instant; each one is a handful of cheap Windows calls.
     readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(16) };
     CrosshairWindow? _window;
-    uint _lastForegroundPid;
-    bool _foregroundIsFortnite;
+    readonly ForegroundGame _foreground = new();
     int _ticks;
 
     // Live state while playing
@@ -162,24 +154,11 @@ public sealed class CrosshairController : ObservableObject
         if (_active is WeaponCrosshair { Enabled: false } || (_active is WeaponCrosshair w && !S.Weapons.Contains(w))) _active = S;
     }
 
-    /// <summary>True when the window in front belongs to Fortnite. The process is only looked up when focus changes.</summary>
-    bool FortniteInFront()
-    {
-        GetWindowThreadProcessId(GetForegroundWindow(), out var pid);
-        if (pid != _lastForegroundPid)
-        {
-            _lastForegroundPid = pid;
-            try { _foregroundIsFortnite = pid != 0 && Process.GetProcessById((int)pid).ProcessName == Fortnite; }
-            catch (ArgumentException) { _foregroundIsFortnite = false; }
-        }
-        return _foregroundIsFortnite;
-    }
-
-    static bool IsDown(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
+    static bool IsDown(int vk) => ForegroundGame.IsDown(vk);
 
     void Tick()
     {
-        var inFront = FortniteInFront();
+        var inFront = _foreground.FortniteInFront();
         var show = S.Enabled && (!S.OnlyInGame || inFront);
 
         if (!show)

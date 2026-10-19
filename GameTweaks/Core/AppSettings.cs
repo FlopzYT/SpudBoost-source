@@ -42,6 +42,19 @@ public sealed class AppSettings
     /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
     public string? LastNotifiedUpdate { get; set; }
 
+    /// <summary>Fortnite potato settings to put back automatically if Fortnite resets them; null = off.</summary>
+    public GameTweaks.Fortnite.FortniteSnapshot? KeptFortniteSettings { get; set; }
+
+    /// <summary>Clean temp files, logs and crash dumps automatically once a week.</summary>
+    public bool AutoCleanWeekly { get; set; }
+    public DateTime LastAutoClean { get; set; }
+
+    /// <summary>Last time the "your GPU driver is old" reminder was shown.</summary>
+    public DateTime LastDriverReminder { get; set; }
+
+    /// <summary>The first-run welcome screen (pick a preset) has been shown.</summary>
+    public bool WelcomeShown { get; set; }
+
     /// <summary>Your name on profile codes you share.</summary>
     public string ProfileName { get; set; } = "";
 
@@ -49,6 +62,8 @@ public sealed class AppSettings
     public List<Friend> Friends { get; set; } = [];
 
     public CrosshairSettings Crosshair { get; set; } = new();
+
+    public StatsOverlaySettings StatsOverlay { get; set; } = new();
 
     static string FilePath => Path.Combine(BackupStore.Folder, "settings.json");
 
@@ -68,6 +83,17 @@ public sealed class AppSettings
         Directory.CreateDirectory(BackupStore.Folder);
         File.WriteAllText(FilePath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
     }
+}
+
+/// <summary>The in-game stats readout (temperatures, usage, ping) shown in a corner over Fortnite.</summary>
+public sealed class StatsOverlaySettings
+{
+    public bool Enabled { get; set; }
+    public string Corner { get; set; } = "Top right";
+    /// <summary>Key that shows/hides the overlay in game. Empty = no hotkey.</summary>
+    public string ToggleKey { get; set; } = "F9";
+    /// <summary>Fortnite region to ping, e.g. "NA-East".</summary>
+    public string PingRegion { get; set; } = "NA-East";
 }
 
 /// <summary>How one crosshair looks.</summary>
