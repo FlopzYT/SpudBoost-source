@@ -45,6 +45,35 @@ public partial class MainWindow
         };
     }
 
+    // ---- Tweaks page: sections and search ----
+
+    void InitTweakList()
+    {
+        var view = new System.Windows.Data.ListCollectionView(_systemTweaks);
+        view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(Tweak.Category)));
+        SystemList.ItemsSource = view;
+    }
+
+    void TweakSearch_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        var query = TweakSearchBox.Text.Trim();
+        TweakSearchHint.Visibility = query.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (SystemList.ItemsSource is not System.Windows.Data.ListCollectionView view) return;
+        view.Filter = query.Length == 0 ? null : o => o is Tweak t &&
+            (t.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+             t.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+             t.Category.Contains(query, StringComparison.OrdinalIgnoreCase));
+        NoTweaksFound.Visibility = view.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    void HealthCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        var open = HealthList.Visibility != Visibility.Visible;
+        HealthList.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+        HealthToggleText.Text = open ? "Hide ▴" : "Show ▾";
+        if (open) AnimatePageIn(HealthList);
+    }
+
     /// <summary>Pages fade in and slide up slightly when you switch to them.</summary>
     static void AnimatePageIn(FrameworkElement page)
     {

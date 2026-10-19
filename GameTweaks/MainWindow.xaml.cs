@@ -63,7 +63,8 @@ public partial class MainWindow : Window
         FortniteGpuCard.Visibility = _fortniteTweaks.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         AmdPotatoCard.Visibility = HasAmdGpu() ? Visibility.Visible : Visibility.Collapsed;
         _dns = _networkTweaks.OfType<DnsTweak>().Single();
-        SystemList.ItemsSource = _systemTweaks;
+        InitTweakList();
+        PageHeading.Text = "⚡  Tweaks";
         NetworkList.ItemsSource = _networkTweaks;
 
         _booster = new GameBooster(_settings);
@@ -89,8 +90,8 @@ public partial class MainWindow : Window
         LoadFortnite();
 
         AdminText.Text = Shell.IsAdmin
-            ? "Running as administrator. All tweaks are available."
-            : "Some tweaks need administrator rights.";
+            ? "✓ Admin mode"
+            : "Some tweaks need admin";
         AdminButton.Visibility = Shell.IsAdmin ? Visibility.Collapsed : Visibility.Visible;
         BackupPathText.Text = BackupStore.Folder;
 
@@ -108,6 +109,7 @@ public partial class MainWindow : Window
             var health = await Task.Run(HealthCheck.Run);
             HealthList.ItemsSource = health;
             HealthCard.Visibility = health.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            HealthHeading.Text = $"⚠ {health.Count} big win{(health.Count == 1 ? "" : "s")} found for this PC";
         };
 
         StartUpdateChecks();
@@ -444,6 +446,7 @@ public partial class MainWindow : Window
     {
         if (Pages == null) return;
         var target = (string)((RadioButton)sender).Tag;
+        PageHeading.Text = ((RadioButton)sender).Content as string;
         foreach (FrameworkElement page in Pages.Children)
         {
             var show = page.Name == target;

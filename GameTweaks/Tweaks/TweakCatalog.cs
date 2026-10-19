@@ -15,7 +15,29 @@ public static class TweakCatalog
     static RegValue Lm(string key, string name, int value) => new(RegistryHive.LocalMachine, key, name, RegistryValueKind.DWord, value);
     static RegValue LmS(string key, string name, string value) => new(RegistryHive.LocalMachine, key, name, RegistryValueKind.String, value);
 
+    /// <summary>Tweaks page sections, in display order.</summary>
+    public static readonly string[] Categories = ["Performance", "Gaming", "Mouse & keyboard", "Windows clutter", "Other"];
+
+    static readonly Dictionary<string, string> CategoryOf = new()
+    {
+        ["power-plan"] = "Performance", ["game-priority"] = "Performance", ["foreground-boost"] = "Performance",
+        ["power-throttling"] = "Performance", ["memory-compression"] = "Performance", ["memory-integrity"] = "Performance", ["hags"] = "Performance",
+        ["game-mode"] = "Gaming", ["game-dvr"] = "Gaming", ["game-bar-overlay"] = "Gaming", ["windowed-optimizations"] = "Gaming",
+        ["fortnite-gpu"] = "Gaming", ["fortnite-fso"] = "Gaming", ["nvidia-profiles"] = "Gaming",
+        ["mouse-accel"] = "Mouse & keyboard", ["sticky-keys"] = "Mouse & keyboard",
+        ["transparency"] = "Windows clutter", ["visual-effects"] = "Windows clutter", ["background-apps"] = "Windows clutter",
+        ["windows-tips"] = "Windows clutter", ["search-indexing"] = "Windows clutter",
+    };
+
+    /// <summary>System tweaks, sorted into their Tweaks page sections.</summary>
     public static List<Tweak> System(Func<IEnumerable<string>> gameProcesses)
+    {
+        var list = SystemUnsorted(gameProcesses);
+        foreach (var t in list) t.Category = CategoryOf.GetValueOrDefault(t.Id, "Other");
+        return list.OrderBy(t => Array.IndexOf(Categories, t.Category)).ToList(); // stable: keeps order within a section
+    }
+
+    static List<Tweak> SystemUnsorted(Func<IEnumerable<string>> gameProcesses)
     {
         var list = SystemCore();
         if (NvidiaProfileTweak.HasNvidiaGpu)

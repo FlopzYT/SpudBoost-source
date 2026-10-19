@@ -21,9 +21,9 @@
             <Setter Property="Background" Value="{StaticResource CardBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="18,14"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
@@ -32,26 +32,27 @@
         </Style>
 
         <Style x:Key="PageTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontSize" Value="22"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
         </Style>
         <Style x:Key="PageSubtitle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="LineHeight" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="LineHeight" Value="18"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
         </Style>
         <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,8,0,10"/>
+            <Setter Property="Margin" Value="0,6,0,6"/>
         </Style>
         <Style x:Key="NavGroup" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#5D6577"/>
-            <Setter Property="Margin" Value="26,14,0,4"/>
+            <Setter Property="Margin" Value="24,10,0,2"/>
         </Style>
         <Style x:Key="Badge" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource AccentDimBrush}"/>
@@ -61,7 +62,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style x:Key="StatValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         </Style>
@@ -71,8 +72,8 @@
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Padding" Value="13,6"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -184,9 +185,9 @@
         <!-- Sidebar navigation: hover fades in, the active page gets a sliding accent bar -->
         <Style x:Key="NavButton" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="10,1"/>
+            <Setter Property="Margin" Value="8,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -194,12 +195,12 @@
                             <Border x:Name="Hover" CornerRadius="9" Background="{StaticResource CardBrush}" Opacity="0"/>
                             <Border x:Name="Sel" CornerRadius="9" Background="{StaticResource AccentDimBrush}" Opacity="0"/>
                             <Border x:Name="Bar" Width="3" CornerRadius="2" Background="{StaticResource AccentBrush}" HorizontalAlignment="Left"
-                                    Margin="0,9" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                    Margin="0,7" Opacity="0" RenderTransformOrigin="0.5,0.5">
                                 <Border.RenderTransform>
                                     <ScaleTransform x:Name="BarScale" ScaleY="0.2"/>
                                 </Border.RenderTransform>
                             </Border>
-                            <ContentPresenter Margin="14,9"/>
+                            <ContentPresenter Margin="14,6"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">

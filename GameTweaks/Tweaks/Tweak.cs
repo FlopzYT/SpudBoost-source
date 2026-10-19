@@ -16,6 +16,9 @@ public abstract class Tweak : ObservableObject
     public required string Name { get; init; }
     public required string Description { get; init; }
     public bool RequiresAdmin { get; init; }
+
+    /// <summary>Section heading on the Tweaks page.</summary>
+    public string Category { get; set; } = "Other";
     public TakesEffect TakesEffect { get; init; }
 
     /// <summary>When set, the user must confirm this warning before the tweak is switched on.</summary>
