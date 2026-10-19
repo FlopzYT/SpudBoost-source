@@ -104,9 +104,12 @@ public partial class MainWindow : Window
 
         UpdateTray();
 
+        // Read every tweak's real state right away, even when starting hidden in the tray,
+        // so the switches are correct by the time the window is opened.
+        _ = RefreshAllAsync();
+
         Loaded += async (_, _) =>
         {
-            await RefreshAllAsync();
             var health = await Task.Run(HealthCheck.Run);
             HealthList.ItemsSource = health;
             HealthCard.Visibility = health.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -189,11 +192,20 @@ public partial class MainWindow : Window
         MessageBox.Show(this, ex.Message, "SpudBoost", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
+    /// <summary>Waits until every tweak's real state is known (bulk actions must not act on unchecked switches).</summary>
+    async Task EnsureTweaksCheckedAsync()
+    {
+        if (AllTweaks.Any(t => !t.IsChecked)) await RefreshAllAsync();
+    }
+
     async Task RefreshAllAsync()
     {
-        // Detection runs commands (powercfg, PowerShell), so keep it off the UI thread.
-        await Task.Run(() => { foreach (var t in AllTweaks) t.Refresh(); });
+        // Detection runs commands (powercfg, PowerShell), so it runs off the UI thread, all tweaks at once.
+        var all = AllTweaks.ToList();
+        if (all.Any(t => !t.IsChecked)) SetStatus("Checking your current settings...");
+        await Task.WhenAll(all.Select(t => Task.Run(t.Refresh)));
         UpdateUndoSummary();
+        if (StatusText.Text == "Checking your current settings...") SetStatus("Ready.");
     }
 
     void UpdateUndoSummary()
@@ -500,6 +512,7 @@ public partial class MainWindow : Window
 
     async void ApplyAllSystem_Click(object sender, RoutedEventArgs e)
     {
+        await EnsureTweaksCheckedAsync();
         // Tweaks with a security trade-off are never switched on in bulk; they need their own confirmation.
         var pending = _systemTweaks.Where(t => !t.IsOn && t.CanToggle && t.ConfirmMessage == null).ToList();
         if (pending.Count > 0) await EnsureRestorePointAsync();
@@ -738,7 +751,7 @@ public partial class MainWindow : Window
         var failures = new List<string>();
         foreach (var t in undoable)
         {
-            if (!t.CanToggle) { failures.Add($"{t.Name}: needs administrator rights."); continue; }
+            if (t.RequiresAdmin && !Shell.IsAdmin) { failures.Add($"{t.Name}: needs administrator rights."); continue; }
             try { await Task.Run(t.Revert); }
             catch (Exception ex) { failures.Add($"{t.Name}: {ex.Message}"); }
         }

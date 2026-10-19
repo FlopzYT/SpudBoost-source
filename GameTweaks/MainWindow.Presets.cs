@@ -44,10 +44,11 @@ public partial class MainWindow
 
     async Task ApplyPresetAsync(Preset preset)
     {
+        await EnsureTweaksCheckedAsync();
         var known = AllTweaks.ToDictionary(t => t.Id);
         var wanted = preset.TweakIds.Where(known.ContainsKey).Select(id => known[id]).Where(t => !t.IsOn).ToList();
         var applicable = wanted.Where(t => t.CanToggle && t.ConfirmMessage == null).ToList();
-        var needAdmin = wanted.Where(t => !t.CanToggle).ToList();
+        var needAdmin = wanted.Where(t => t.RequiresAdmin && !Shell.IsAdmin).ToList();
 
         var failures = new List<string>();
         if (applicable.Count > 0) await EnsureRestorePointAsync();

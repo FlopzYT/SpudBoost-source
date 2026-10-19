@@ -24,7 +24,11 @@ public abstract class Tweak : ObservableObject
     /// <summary>When set, the user must confirm this warning before the tweak is switched on.</summary>
     public string? ConfirmMessage { get; init; }
 
-    public bool CanToggle => !RequiresAdmin || Shell.IsAdmin;
+    bool _checked;
+    /// <summary>False until the current state has been read, so a not-yet-known "off" can't be clicked by mistake.</summary>
+    public bool IsChecked { get => _checked; private set { if (SetField(ref _checked, value)) OnPropertyChanged(nameof(CanToggle)); } }
+
+    public bool CanToggle => IsChecked && (!RequiresAdmin || Shell.IsAdmin);
 
     bool _isOn;
     /// <summary>Bound to the toggle; the click handler applies or reverts, then calls <see cref="Refresh"/>.</summary>
@@ -72,6 +76,7 @@ public abstract class Tweak : ObservableObject
         catch { on = false; }
         IsOn = on;
         PendingNote = ComputePendingNote();
+        IsChecked = true;
     }
 
     string? ComputePendingNote()

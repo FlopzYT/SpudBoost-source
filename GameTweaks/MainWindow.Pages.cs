@@ -340,6 +340,7 @@ public partial class MainWindow
     async void ApplyFriendCode_Click(object sender, RoutedEventArgs e)
     {
         if (_previewProfile is not { } profile) return;
+        await EnsureTweaksCheckedAsync();
         var done = new List<string>();
         var problems = new List<string>();
 
