@@ -42,6 +42,12 @@ public sealed class AppSettings
     /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
     public string? LastNotifiedUpdate { get; set; }
 
+    /// <summary>Your name on profile codes you share.</summary>
+    public string ProfileName { get; set; } = "";
+
+    /// <summary>Friends saved on the Share page, with their latest profile codes. Stored only on this PC.</summary>
+    public List<Friend> Friends { get; set; } = [];
+
     public CrosshairSettings Crosshair { get; set; } = new();
 
     static string FilePath => Path.Combine(BackupStore.Folder, "settings.json");
@@ -103,6 +109,9 @@ public sealed class CrosshairSettings : CrosshairLook
 
     /// <summary>Extra gap (px) while left mouse is held, like weapon bloom. 0 = off.</summary>
     public double FireSpread { get; set; }
+
+    /// <summary>Key that shows/hides the crosshair while in game. Empty = no hotkey.</summary>
+    public string ToggleKey { get; set; } = "F8";
 
     public List<WeaponCrosshair> Weapons { get; set; } =
     [

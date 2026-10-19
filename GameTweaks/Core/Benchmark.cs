@@ -11,6 +11,10 @@ public sealed record BenchmarkResult(
 {
     public string Summary => $"{AvgFps:0} avg · {Low1:0} 1% low · {Low01:0} 0.1% low";
     public string When => Date.ToString("MMM d, h:mm tt", CultureInfo.CurrentCulture);
+
+    /// <summary>Change versus the first run of the same game, e.g. "+12% avg · +8% 1% low vs Before tweaks".</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string Comparison { get; set; } = "";
 }
 
 /// <summary>
@@ -96,6 +100,20 @@ public static class Benchmark
 
     public static List<BenchmarkResult> History()
     {
+        var results = Load();
+        // Newest first; each game's oldest run is its baseline.
+        foreach (var result in results)
+        {
+            var baseline = results.LastOrDefault(r => r.Game == result.Game);
+            if (baseline == null || ReferenceEquals(baseline, result)) continue;
+            static string Pct(double now, double before) => before <= 0 ? "?" : $"{(now / before - 1) * 100:+0;-0;0}%";
+            result.Comparison = $"{Pct(result.AvgFps, baseline.AvgFps)} avg · {Pct(result.Low1, baseline.Low1)} 1% low vs \"{baseline.Label}\"";
+        }
+        return results;
+    }
+
+    static List<BenchmarkResult> Load()
+    {
         try
         {
             if (File.Exists(HistoryPath))
@@ -107,7 +125,7 @@ public static class Benchmark
 
     static void Save(BenchmarkResult result)
     {
-        var all = History();
+        var all = Load();
         all.Insert(0, result);
         Directory.CreateDirectory(BackupStore.Folder);
         File.WriteAllText(HistoryPath, JsonSerializer.Serialize(all, new JsonSerializerOptions { WriteIndented = true }));

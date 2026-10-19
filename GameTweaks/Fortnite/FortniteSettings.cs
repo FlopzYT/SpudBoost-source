@@ -34,6 +34,20 @@ public sealed class BoolSetting(string label, string key, string hint) : Observa
     public bool Value { get => _value; set => SetField(ref _value, value); }
 }
 
+/// <summary>The graphics choices from the Potato page, as carried in a share code (no personal or account data).</summary>
+public sealed class FortniteSnapshot
+{
+    public int ResX { get; set; }
+    public int ResY { get; set; }
+    public int WindowMode { get; set; }
+    public int RenderMode { get; set; }
+    public int MeshQuality { get; set; }
+    public double ResolutionPercent { get; set; }
+    public int FrameRateLimit { get; set; }
+    public Dictionary<string, int> Qualities { get; set; } = new();
+    public Dictionary<string, bool> Toggles { get; set; } = new();
+}
+
 /// <summary>Editable view of Fortnite's GameUserSettings.ini, with presets and backups.</summary>
 public sealed class FortniteSettings : ObservableObject
 {
@@ -190,6 +204,31 @@ public sealed class FortniteSettings : ObservableObject
     }
 
     void SetToggle(string key, bool value) => Toggles.First(t => t.Key == key).Value = value;
+
+    public FortniteSnapshot Snapshot() => new()
+    {
+        ResX = ResX, ResY = ResY, WindowMode = WindowMode, RenderMode = RenderMode, MeshQuality = MeshQuality,
+        ResolutionPercent = ResolutionPercent, FrameRateLimit = FrameRateLimit,
+        Qualities = Qualities.ToDictionary(q => q.Key, q => q.Value),
+        Toggles = Toggles.ToDictionary(t => t.Key, t => t.Value),
+    };
+
+    /// <summary>Loads a friend's settings into the editor (not saved until <see cref="Save"/>). Values are range-checked.</summary>
+    public void ApplySnapshot(FortniteSnapshot s)
+    {
+        if (s.ResX is >= 640 and <= 7680 && s.ResY is >= 480 and <= 4320)
+        {
+            ResX = s.ResX;
+            ResY = s.ResY;
+        }
+        WindowMode = Math.Clamp(s.WindowMode, 0, WindowModes.Length - 1);
+        RenderMode = Math.Clamp(s.RenderMode, 0, RenderModes.Length - 1);
+        MeshQuality = s.MeshQuality;
+        ResolutionPercent = Math.Clamp(s.ResolutionPercent, 25, 100);
+        FrameRateLimit = Math.Clamp(s.FrameRateLimit, 0, 1000);
+        foreach (var q in Qualities) if (s.Qualities.TryGetValue(q.Key, out var v)) q.Value = v;
+        foreach (var t in Toggles) if (s.Toggles.TryGetValue(t.Key, out var v)) t.Value = v;
+    }
 
     /// <summary>Writes the settings. Returns the timestamped backup path.</summary>
     public string Save()

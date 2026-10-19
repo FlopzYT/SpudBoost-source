@@ -33,6 +33,8 @@ public sealed class CrosshairController : ObservableObject
     readonly HashSet<int> _down = new();
     CrosshairLook? _active;
     bool _aiming, _firing, _drawnAiming, _drawnFiring;
+    int _toggleVk;
+    bool _toggleDown, _hiddenByHotkey;
     CrosshairLook? _drawnLook;
 
     /// <summary>Raised after any change, so the preview can redraw.</summary>
@@ -108,6 +110,23 @@ public sealed class CrosshairController : ObservableObject
     public bool OnlyInGame { get => S.OnlyInGame; set => Set(() => S.OnlyInGame = value, S.OnlyInGame != value); }
     public bool HideWhileAiming { get => S.HideWhileAiming; set => Set(() => S.HideWhileAiming = value, S.HideWhileAiming != value); }
     public double FireSpread { get => S.FireSpread; set => Set(() => S.FireSpread = Math.Round(value), S.FireSpread != Math.Round(value)); }
+    public string ToggleKey { get => S.ToggleKey; set => Set(() => S.ToggleKey = value.Trim(), S.ToggleKey != value.Trim()); }
+
+    /// <summary>Share code for the current crosshairs (copy and send to friends).</summary>
+    public string ExportCode() => CrosshairShare.Export(S);
+
+    /// <summary>Applies a friend's share code. Throws FormatException if the code is invalid.</summary>
+    public void ImportCode(string code)
+    {
+        CrosshairShare.Import(code, S);
+        _settings.Save();
+        _editIndex = 0;
+        _active = S;
+        RebuildKeyMap();
+        _drawnLook = null;
+        OnPropertyChanged(string.Empty); // every property may have changed
+        Changed?.Invoke();
+    }
     public double OffsetX { get => S.OffsetX; set => Set(() => S.OffsetX = Math.Round(value), S.OffsetX != Math.Round(value)); }
     public double OffsetY { get => S.OffsetY; set => Set(() => S.OffsetY = Math.Round(value), S.OffsetY != Math.Round(value)); }
 
@@ -139,7 +158,8 @@ public sealed class CrosshairController : ObservableObject
         foreach (var weapon in S.Weapons.Where(w => w.Enabled))
             foreach (var vk in KeyList.Parse(weapon.Keys)) map[vk] = weapon;
         _keyMap = map;
-        if (_active is WeaponCrosshair { Enabled: false }) _active = S;
+        _toggleVk = KeyList.Parse(S.ToggleKey).FirstOrDefault();
+        if (_active is WeaponCrosshair { Enabled: false } || (_active is WeaponCrosshair w && !S.Weapons.Contains(w))) _active = S;
     }
 
     /// <summary>True when the window in front belongs to Fortnite. The process is only looked up when focus changes.</summary>
@@ -189,7 +209,7 @@ public sealed class CrosshairController : ObservableObject
             _drawnLook = look;
             _drawnFiring = _firing;
         }
-        var hidden = _aiming && S.HideWhileAiming;
+        var hidden = (_aiming && S.HideWhileAiming) || _hiddenByHotkey;
         if (hidden != _drawnAiming)
         {
             _window.SetBlank(hidden);
@@ -208,6 +228,13 @@ public sealed class CrosshairController : ObservableObject
         }
         _aiming = IsDown(VkRightButton);
         _firing = S.FireSpread > 0 && IsDown(VkLeftButton);
+
+        if (_toggleVk != 0)
+        {
+            var down = IsDown(_toggleVk);
+            if (down && !_toggleDown) _hiddenByHotkey = !_hiddenByHotkey;
+            _toggleDown = down;
+        }
     }
 
     void UpdateStatus(bool inFront)
@@ -215,6 +242,7 @@ public sealed class CrosshairController : ObservableObject
         var name = (_active as WeaponCrosshair)?.Name ?? "Default";
         Status = !S.Enabled ? "Crosshair is off."
             : S.OnlyInGame && !inFront ? "Will show when Fortnite is the window in front."
+            : _hiddenByHotkey ? $"Hidden with {S.ToggleKey}. Press it again in game to show it."
             : $"Showing: {name} crosshair{(inFront ? " (switches with your weapon keys)" : "")}.";
     }
 

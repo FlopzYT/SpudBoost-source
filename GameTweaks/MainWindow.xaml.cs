@@ -13,6 +13,7 @@ namespace GameTweaks;
 
 public partial class MainWindow : Window
 {
+    // Page logic for Cleaner, Monitor, Share and Debloater lives in MainWindow.Pages.cs.
     static readonly (string Label, int X, int Y)[] Resolutions =
     [
         ("Common resolutions...", 0, 0),
@@ -97,6 +98,7 @@ public partial class MainWindow : Window
         InitBenchmark();
         _crosshair = new CrosshairController(_settings);
         InitCrosshair();
+        InitPages();
 
         UpdateTray();
 
@@ -443,9 +445,14 @@ public partial class MainWindow : Window
         if (Pages == null) return;
         var target = (string)((RadioButton)sender).Tag;
         foreach (FrameworkElement page in Pages.Children)
-            page.Visibility = page.Name == target ? Visibility.Visible : Visibility.Collapsed;
+        {
+            var show = page.Name == target;
+            page.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            if (show) AnimatePageIn(page);
+        }
         if (target == "FortnitePage") LoadFortnite();
         if (target == "CrosshairPage") UpdateCrosshairWarning();
+        OnPageShown(target);
     }
 
     void RestartAdmin_Click(object sender, RoutedEventArgs e)

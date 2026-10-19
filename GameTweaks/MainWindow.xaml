@@ -81,14 +81,23 @@
                     </StackPanel>
                 </Border>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel>
+                <StackPanel Margin="0,0,0,8">
+                    <TextBlock Text="OPTIMIZE" Style="{StaticResource NavGroup}" Margin="26,0,0,4"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⚡  Tweaks" Tag="TweaksPage" IsChecked="True" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🎮  Game Boost" Tag="BoostPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🚀  Startup apps" Tag="StartupPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🌐  Network" Tag="NetworkPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🥔  Fortnite Potato" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🚀  Startup apps" Tag="StartupPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🧹  Cleaner" Tag="CleanerPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🗑  Debloater" Tag="DebloatPage" Checked="Nav_Checked" GroupName="Nav"/>
+
+                    <TextBlock Text="FORTNITE" Style="{StaticResource NavGroup}"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🥔  Potato graphics" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🎯  Crosshair" Tag="CrosshairPage" Checked="Nav_Checked" GroupName="Nav"/>
+
+                    <TextBlock Text="TOOLS" Style="{StaticResource NavGroup}"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="📈  Monitor" Tag="MonitorPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="👥  Share" Tag="SharePage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="↩  Backup &amp; Undo" Tag="BackupPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⚙  Settings" Tag="SettingsPage" Checked="Nav_Checked" GroupName="Nav"/>
                 </StackPanel>
@@ -545,6 +554,16 @@
                                     <Slider Width="200" Minimum="0" Maximum="20" Value="{Binding FireSpread, Mode=TwoWay}" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding FireSpread, StringFormat='{}{0} px (0 = off)'}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
                                 </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="Show/hide hotkey" VerticalAlignment="Center" Width="150"/>
+                                    <TextBox Width="80" Text="{Binding ToggleKey, UpdateSourceTrigger=LostFocus}"/>
+                                    <TextBlock Text="Press it in game to hide or show the crosshair (e.g. F8, empty = off)" Margin="10,0,0,0"
+                                               VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button Content="Copy crosshair code" Click="CopyCrosshairCode_Click"/>
+                                    <Button Content="Paste a friend's crosshair" Click="PasteCrosshairCode_Click"/>
+                                </StackPanel>
                             </StackPanel>
                             <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
                         </Grid>
@@ -716,9 +735,215 @@
                                                 <Run Text="{Binding Label, Mode=OneWay}"/><Run Text="  ·  " Foreground="{StaticResource SubTextBrush}"/><Run Text="{Binding Game, Mode=OneWay}" Foreground="{StaticResource SubTextBrush}"/>
                                             </TextBlock>
                                             <TextBlock Text="{Binding When}" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                            <TextBlock Text="{Binding Comparison}" Foreground="{StaticResource WarnBrush}" FontSize="12"
+                                                       Visibility="{Binding Comparison, Converter={x:Static local:NotNullToVisibility.Instance}}"/>
                                         </StackPanel>
                                         <TextBlock Grid.Column="1" Text="{Binding Summary}" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Cleaner -->
+            <ScrollViewer x:Name="CleanerPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Cleaner" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Frees up space taken by temporary files, logs and caches. Files that are in use are skipped, and temp files from the last 24 hours are left alone. Deleted files don't go to the Recycle Bin."/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button x:Name="CleanButton" Content="Clean selected" Style="{StaticResource PrimaryButton}" Click="Clean_Click"/>
+                        <Button Content="Scan again" Click="ScanCleaner_Click"/>
+                        <TextBlock x:Name="CleanerTotal" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{StaticResource SubTextBrush}"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="CleanerList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="18,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox IsChecked="{Binding Selected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Description}" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding SizeText}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"
+                                                   VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Debloater -->
+            <ScrollViewer x:Name="DebloatPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Debloater" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Remove preinstalled Windows apps you don't use. Only apps from a checked list of safe-to-remove extras are shown. The Microsoft Store, Xbox sign-in, security, drivers and other things Windows needs are never offered. Nothing is selected until you tick it, and anything removed can be reinstalled free from the Microsoft Store."/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button x:Name="DebloatButton" Content="Remove selected" Style="{StaticResource PrimaryButton}" Click="Debloat_Click"/>
+                        <Button Content="Refresh list" Click="RefreshDebloat_Click"/>
+                        <TextBlock x:Name="DebloatStatus" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{StaticResource SubTextBrush}"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="DebloatList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="18,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox IsChecked="{Binding Selected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Note, StringFormat=⚠ {0}}" Foreground="{StaticResource WarnBrush}" FontSize="12" TextWrapping="Wrap"
+                                                       Visibility="{Binding Note, Converter={x:Static local:NotNullToVisibility.Instance}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Live monitor -->
+            <ScrollViewer x:Name="MonitorPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Monitor" Style="{StaticResource PageTitle}"/>
+                    <TextBlock x:Name="MonitorSubtitle" Style="{StaticResource PageSubtitle}"
+                               Text="Live readings, updated every 2 seconds while this page is open. Leave it open on a second screen while you play to see what's holding your FPS back."/>
+                    <UniformGrid Columns="3">
+                        <Border Style="{StaticResource Card}" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="CPU usage" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock Text="{Binding Cpu}" Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="RAM usage" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock Text="{Binding Ram}" Style="{StaticResource StatValue}"/>
+                                <TextBlock Text="{Binding RamDetail}" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="GPU usage" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock Text="{Binding Gpu}" Style="{StaticResource StatValue}"/>
+                                <TextBlock Text="{Binding GpuName}" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="GPU temperature" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock Text="{Binding GpuTemp}" Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="GPU clock" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock Text="{Binding GpuClock}" Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="VRAM / power" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock Text="{Binding Vram}" Style="{StaticResource StatValue}" FontSize="24"/>
+                                <TextBlock Text="{Binding GpuPower}" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                    <Border Style="{StaticResource Card}">
+                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="20"
+                                   Text="How to read it: if GPU usage stays near 95–100% in game, your graphics card is the limit, so lower graphics settings help. If GPU usage is well below that while one CPU core is busy, your CPU is the limit: graphics settings won't help much, but closing background apps, XMP and the CPU tweaks will. GPU temperatures above about 85 °C can mean dust or poor airflow."/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Share profiles with friends -->
+            <ScrollViewer x:Name="SharePage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="36,30">
+                    <TextBlock Text="Share" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Share your setup with friends as a code, and try theirs. A code only holds which SpudBoost tweaks are on, your Fortnite potato settings and your crosshairs. Nothing personal, and it can't do anything SpudBoost can't."/>
+
+                    <TextBlock Text="Your profile code" Style="{StaticResource SectionTitle}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Your name" VerticalAlignment="Center" Width="90"/>
+                                <TextBox x:Name="ProfileNameBox" Width="200"/>
+                            </StackPanel>
+                            <WrapPanel Margin="0,0,0,10">
+                                <CheckBox x:Name="ShareTweaksBox" Content="Tweaks" IsChecked="True" Margin="0,0,16,0"/>
+                                <CheckBox x:Name="ShareFortniteBox" Content="Fortnite potato settings" IsChecked="True" Margin="0,0,16,0"/>
+                                <CheckBox x:Name="ShareCrosshairBox" Content="Crosshairs" IsChecked="True"/>
+                            </WrapPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Copy my profile code" Style="{StaticResource PrimaryButton}" Click="CopyProfile_Click"/>
+                                <TextBlock x:Name="ProfileCopiedText" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Try a friend's code" Style="{StaticResource SectionTitle}" Margin="0,18,0,10"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBox x:Name="FriendCodeBox" Height="60" TextWrapping="Wrap" AcceptsReturn="False" VerticalScrollBarVisibility="Auto"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Paste" Click="PasteFriendCode_Click"/>
+                                <Button Content="Preview" Click="PreviewFriendCode_Click"/>
+                            </StackPanel>
+                            <Border x:Name="PreviewPanel" Visibility="Collapsed" Margin="0,12,0,0" Padding="14,10" CornerRadius="9" Background="#151920">
+                                <StackPanel>
+                                    <TextBlock x:Name="PreviewTitle" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                    <CheckBox x:Name="ApplyTweaksBox" IsChecked="True" Margin="0,8,0,0"/>
+                                    <TextBlock x:Name="PreviewTweaks" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource SubTextBrush}" Margin="24,0,0,0"/>
+                                    <CheckBox x:Name="ApplyFortniteBox" IsChecked="True" Content="Their Fortnite potato settings (saved to Fortnite, with a backup)"/>
+                                    <CheckBox x:Name="ApplyCrosshairBox" IsChecked="True" Content="Their crosshairs (replaces yours)"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <Button Content="Apply selected" Style="{StaticResource PrimaryButton}" Click="ApplyFriendCode_Click"/>
+                                        <TextBox x:Name="SaveFriendNameBox" Width="160" Margin="0,0,8,0" VerticalContentAlignment="Center"/>
+                                        <Button Content="Save to friends" Click="SaveFriend_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Friends" Style="{StaticResource SectionTitle}" Margin="0,18,0,10"/>
+                    <TextBlock x:Name="NoFriendsText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                               Text="No friends saved yet. Preview a friend's code above and click &quot;Save to friends&quot;. When they send a new code, save it under the same name to update them."/>
+                    <ItemsControl x:Name="FriendsList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="18,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                            <TextBlock Text="{Binding Summary}" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Button Content="Load" Click="LoadFriend_Click"/>
+                                            <Button Content="Copy code" Click="CopyFriend_Click"/>
+                                            <Button Content="Remove" Margin="0" Click="RemoveFriend_Click"/>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

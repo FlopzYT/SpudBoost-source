@@ -196,6 +196,48 @@ public static class TweakCatalog
         },
         new RegistryTweak
         {
+            Id = "sticky-keys",
+            Name = "Turn off Sticky Keys pop-ups",
+            Description = "Stops the Sticky Keys / Filter Keys / Toggle Keys pop-up that kicks you out of your game when you press Shift five times or hold it down.",
+            Values =
+            [
+                CuS(@"Control Panel\Accessibility\StickyKeys", "Flags", "506"),
+                CuS(@"Control Panel\Accessibility\Keyboard Response", "Flags", "122"),
+                CuS(@"Control Panel\Accessibility\ToggleKeys", "Flags", "58"),
+            ],
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "windowed-optimizations",
+            Name = "Optimizations for windowed games",
+            Description = "Windows 11 runs borderless and windowed games with the same low-latency path as fullscreen. Lowers input delay in Windowed fullscreen (which the crosshair overlay needs). Restart the game to apply.",
+            Values = [CuS(@"Software\Microsoft\DirectX\UserGpuPreferences", "DirectXUserGlobalSettings", "SwapEffectUpgradeEnable=1;")],
+        },
+        new RegistryTweak
+        {
+            Id = "windows-tips",
+            Name = "Turn off Windows tips and suggestions",
+            Description = "Stops \"tips\", app suggestions and welcome pop-ups that can appear over your game.",
+            Values =
+            [
+                Cu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338389Enabled", 0),
+                Cu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SoftLandingEnabled", 0),
+                Cu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SystemPaneSuggestionsEnabled", 0),
+            ],
+        },
+        new ScriptTweak
+        {
+            Id = "search-indexing",
+            Name = "Turn off Windows Search indexing",
+            Description = "Stops Windows constantly scanning your files in the background, which can cause stutter and disk use mid-game. Searching in Start still works, just a little slower.",
+            CheckScript = "(Get-Service WSearch).StartType -eq 'Disabled'",
+            ApplyScript = "Stop-Service WSearch -Force -ErrorAction SilentlyContinue; Set-Service WSearch -StartupType Disabled",
+            RevertScript = "sc.exe config WSearch start= delayed-auto | Out-Null; Start-Service WSearch",
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
             Id = "game-bar-overlay",
             Name = "Disable Xbox Game Bar overlay",
             Description = "Stops the Game Bar overlay loading into games and the Win+G shortcut. Saves a little CPU and memory.",

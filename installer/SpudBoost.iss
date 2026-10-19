@@ -2,7 +2,7 @@
 ; Expects the published app in ..\release\SpudBoost.exe (dotnet publish GameTweaks -c Release -o release).
 
 #define AppName "SpudBoost"
-#define AppVersion "1.1.0"
+#define AppVersion "1.2.0"
 #define AppExe "SpudBoost.exe"
 
 [Setup]
@@ -34,6 +34,7 @@ RestartApplications=no
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Shortcuts:"
+Name: "startup"; Description: "&Start SpudBoost when Windows starts (in the tray, so Game Boost, the crosshair and update alerts are always ready)"; GroupDescription: "Startup:"
 
 [Files]
 Source: "..\release\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -43,7 +44,10 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]
-; The app adds this itself when "Start with Windows" is ticked; remove it on uninstall (creates nothing on install).
+; Start with Windows (same entry the app's Settings switch uses), hidden in the tray.
+; Only on a fresh install or when coming from a version without this option, so a later "off" in Settings survives updates.
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "SpudBoost"; ValueType: string; ValueData: """{app}\{#AppExe}"" --minimized"; Flags: uninsdeletevalue; Tasks: startup; Check: StartupNotDecidedYet
+; Always remove it on uninstall, even if it was switched on later from Settings (creates nothing on install).
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "SpudBoost"; ValueType: none; Flags: uninsdeletevalue
 
 [Run]
@@ -56,6 +60,18 @@ Filename: "{app}\{#AppExe}"; Flags: nowait; Check: WizardSilent
 Filename: "{app}\{#AppExe}"; Parameters: "--exit"; Flags: runhidden waituntilterminated; RunOnceId: "ExitSpudBoost"
 
 [Code]
+// True for a fresh install, or an upgrade from 1.0.x/1.1.x (before the startup option existed).
+function StartupNotDecidedYet: Boolean;
+var
+  Previous: String;
+begin
+  if not RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{6B1E2C57-4F0A-4D7E-9C3B-5A2F8E1D7C40}_is1',
+                             'DisplayVersion', Previous) then
+    Result := True
+  else
+    Result := (Copy(Previous, 1, 4) = '1.0.') or (Copy(Previous, 1, 4) = '1.1.');
+end;
+
 // Before installing over an existing copy, ask it to exit cleanly (restores Game Boost changes).
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
