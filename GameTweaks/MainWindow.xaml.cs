@@ -82,6 +82,9 @@ public partial class MainWindow : Window
         GamesBox.Text = string.Join(Environment.NewLine, _settings.GameProcesses);
         BackgroundBox.Text = string.Join(Environment.NewLine, _settings.BackgroundProcesses);
         CloseAppsBox.IsChecked = _settings.CloseAppsOnGameStart;
+        KeepClosedBox.IsChecked = _settings.KeepAppsClosed;
+        DisableAtStartupBox.IsChecked = _settings.DisableAppsAtStartup;
+        if (_settings.DisableAppsAtStartup) Loaded += async (_, _) => await DisableListedStartupAppsAsync(quiet: true);
         AppsToCloseBox.Text = string.Join(Environment.NewLine, _settings.AppsToClose);
 
         DnsCombo.ItemsSource = DnsTweak.Providers.Keys;
@@ -562,7 +565,29 @@ public partial class MainWindow : Window
         _settings.RaiseGamePriority = RaisePriorityBox.IsChecked == true;
         _settings.LowerBackgroundApps = LowerBackgroundBox.IsChecked == true;
         _settings.CloseAppsOnGameStart = CloseAppsBox.IsChecked == true;
+        _settings.KeepAppsClosed = KeepClosedBox.IsChecked == true;
         _settings.Save();
+    }
+
+    async void DisableAtStartup_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.DisableAppsAtStartup = DisableAtStartupBox.IsChecked == true;
+        _settings.AppsToClose = Lines(AppsToCloseBox.Text);
+        _settings.Save();
+        if (_settings.DisableAppsAtStartup) await DisableListedStartupAppsAsync(quiet: false);
+        else SetStatus("Apps you already turned off stay off. Turn them back on from the Startup apps page.");
+    }
+
+    /// <summary>Turns off startup entries for the apps in the close list. Runs at launch too, since apps often re-add themselves.</summary>
+    async Task DisableListedStartupAppsAsync(bool quiet)
+    {
+        var names = _settings.AppsToClose.ToList();
+        var disabled = await Task.Run(() => StartupManager.DisableMatching(names));
+        if (disabled.Count > 0) StartupList.ItemsSource = StartupManager.List();
+        if (!quiet || disabled.Count > 0)
+            SetStatus(disabled.Count == 0
+                ? "None of the listed apps are set to start with Windows" + (Shell.IsAdmin ? "." : " (apps installed for all users need Run as admin).")
+                : $"Stopped from starting with Windows: {string.Join(", ", disabled)}.");
     }
 
     async void CloseAppsNow_Click(object sender, RoutedEventArgs e)
@@ -588,6 +613,7 @@ public partial class MainWindow : Window
         _settings.AppsToClose = Lines(AppsToCloseBox.Text);
         _settings.Save();
         SetStatus("Game Boost lists saved.");
+        if (_settings.DisableAppsAtStartup) _ = DisableListedStartupAppsAsync(quiet: true);
     }
 
     // ---- Network ----

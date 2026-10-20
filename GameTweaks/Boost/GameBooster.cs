@@ -53,6 +53,7 @@ public sealed class GameBooster : ObservableObject
         if (_game != null)
         {
             if (!IsRunning(_game)) EndBoost($"{_gameName} closed. Background apps restored.");
+            else if (++_ticksBoosted % 10 == 0) KeepAppsClosed(); // every 30 seconds
             return;
         }
 
@@ -124,8 +125,26 @@ public sealed class GameBooster : ObservableObject
         Status = $"Boosting {game.ProcessName}: {string.Join(", ", notes)}.";
     }
 
+    int _ticksBoosted;
+    bool _closing;
+
+    /// <summary>Closes list apps that reopened during the game (OneDrive, Teams and others restart themselves).</summary>
+    void KeepAppsClosed()
+    {
+        if (!_settings.CloseAppsOnGameStart || !_settings.KeepAppsClosed || _closing) return;
+        _closing = true;
+        var names = _settings.AppsToClose.ToList();
+        Task.Run(() => ProcessCleaner.Close(names)).ContinueWith(t =>
+        {
+            _closing = false;
+            if (t.IsCompletedSuccessfully && t.Result.Count > 0)
+                Status = $"Boosting {_gameName}. Closed again: {string.Join(", ", t.Result)}.";
+        }, TaskScheduler.FromCurrentSynchronizationContext());
+    }
+
     void EndBoost(string status)
     {
+        _ticksBoosted = 0;
         if (_game != null && IsRunning(_game) && _settings.RaiseGamePriority)
         {
             try { _game.PriorityClass = _gameOriginal; }

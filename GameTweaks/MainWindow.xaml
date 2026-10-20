@@ -638,11 +638,49 @@
                             <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
                         </Grid>
                     </Border>
-                    <Border Style="{StaticResource Card}">
+                    <!-- Options as big switch rows -->
+                    <Border Style="{StaticResource Card}" Padding="16,6">
                         <StackPanel>
-                            <CheckBox x:Name="RaisePriorityBox" Content="Raise the game's priority to High" Click="BoostOption_Click"/>
-                            <CheckBox x:Name="LowerBackgroundBox" Content="Lower background apps to Below normal" Click="BoostOption_Click"/>
-                            <CheckBox x:Name="CloseAppsBox" Content="Close unnecessary apps (from the list below) when a game starts" Click="BoostOption_Click"/>
+                            <DockPanel Margin="0,8">
+                                <ToggleButton x:Name="RaisePriorityBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="BoostOption_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Raise the game's priority to High" FontWeight="SemiBold"/>
+                                    <TextBlock Text="The game gets the CPU before anything else." FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,8">
+                                <ToggleButton x:Name="LowerBackgroundBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="BoostOption_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Lower background apps to Below normal" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Browsers, launchers and the apps in the list below get less CPU while you play." FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,8">
+                                <ToggleButton x:Name="CloseAppsBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="BoostOption_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Close unnecessary apps when a game starts" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Closes the apps in the list at the bottom of this page." FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,8">
+                                <ToggleButton x:Name="KeepClosedBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="BoostOption_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Keep them closed while you play" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Apps like OneDrive and Teams reopen themselves. SpudBoost closes them again every 30 seconds until the game exits." FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,8">
+                                <ToggleButton x:Name="DisableAtStartupBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="DisableAtStartup_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Stop them starting with Windows" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DisableAtStartupText" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                                               Text="Turns off the startup entries of the apps in the list, so they don't run in the background at all. Undo any of them on the Startup apps page."/>
+                                </StackPanel>
+                            </DockPanel>
                         </StackPanel>
                     </Border>
                     <Grid>
@@ -667,7 +705,7 @@
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
                             <DockPanel Margin="0,0,0,8">
-                                <Button DockPanel.Dock="Right" Content="Close them now" Margin="0" Click="CloseAppsNow_Click"/>
+                                <Button DockPanel.Dock="Right" Content="Close them now" Style="{StaticResource PrimaryButton}" Margin="0" VerticalAlignment="Top" Click="CloseAppsNow_Click"/>
                                 <StackPanel>
                                     <TextBlock Text="Unnecessary apps to close" FontWeight="SemiBold"/>
                                     <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"

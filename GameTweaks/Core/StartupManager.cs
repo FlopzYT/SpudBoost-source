@@ -85,6 +85,38 @@ public static class StartupManager
         return entry;
     }
 
+    /// <summary>
+    /// Turns off enabled startup entries whose name or program matches one of <paramref name="names"/> (e.g. "OneDrive").
+    /// Protected entries and ones that need admin rights we don't have are skipped. Returns the entries turned off.
+    /// </summary>
+    public static List<string> DisableMatching(IEnumerable<string> names)
+    {
+        var list = names.Where(n => n.Length >= 3).ToList();
+        var disabled = new List<string>();
+        foreach (var entry in List().Where(e => e.Enabled && e.CanToggle))
+        {
+            var exe = ExeName(entry.Command);
+            if (!list.Any(n => entry.Name.StartsWith(n, StringComparison.OrdinalIgnoreCase) ||
+                               exe.Equals(n, StringComparison.OrdinalIgnoreCase))) continue;
+            try
+            {
+                SetEnabled(entry, false);
+                disabled.Add(entry.Name);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException or System.Security.SecurityException) { }
+        }
+        return disabled;
+    }
+
+    /// <summary>Program name without folder or .exe from a startup command line.</summary>
+    static string ExeName(string command)
+    {
+        var c = command.Trim();
+        var path = c.StartsWith('"') ? c[1..].Split('"')[0] : c.Split(".exe", StringSplitOptions.None)[0] + ".exe";
+        try { return Path.GetFileNameWithoutExtension(path); }
+        catch (ArgumentException) { return ""; }
+    }
+
     public static void SetEnabled(StartupEntry entry, bool enabled)
     {
         if (entry.Protected) throw new InvalidOperationException($"{entry.Name} is needed by Windows and can't be disabled here.");
