@@ -61,11 +61,6 @@ public sealed class AppSettings
     /// <summary>The first-run welcome screen (pick a preset) has been shown.</summary>
     public bool WelcomeShown { get; set; }
 
-    /// <summary>Your name on profile codes you share.</summary>
-    public string ProfileName { get; set; } = "";
-
-    /// <summary>Friends saved on the Share page, with their latest profile codes. Stored only on this PC.</summary>
-    public List<Friend> Friends { get; set; } = [];
 
     public CrosshairSettings Crosshair { get; set; } = new();
 

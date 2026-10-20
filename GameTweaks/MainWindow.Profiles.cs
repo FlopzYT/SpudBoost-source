@@ -85,10 +85,93 @@ public partial class MainWindow
         RefreshProfiles();
     }
 
-    /// <summary>Previews the changes, then switches tweaks and settings to match the profile.</summary>
-    async void LoadProfile_Click(object sender, RoutedEventArgs e)
+    // ---- Publish and install .spudboost configs ----
+
+    void PublishProfile_Click(object sender, RoutedEventArgs e)
     {
         var profile = (PersonalProfile)((FrameworkElement)sender).DataContext;
+        var invalid = Path.GetInvalidFileNameChars();
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = $"Publish \"{profile.Name}\"",
+            FileName = new string(profile.Name.Select(c => invalid.Contains(c) ? '_' : c).ToArray()) + PersonalProfiles.FileExtension,
+            Filter = $"SpudBoost config (*{PersonalProfiles.FileExtension})|*{PersonalProfiles.FileExtension}",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            PersonalProfiles.Export(profile, dialog.FileName);
+            SetStatus($"Published to {dialog.FileName}. Send it to anyone; they double-click it to install it in SpudBoost.");
+            System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{dialog.FileName}\"");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { ShowError(ex); }
+    }
+
+    void InstallConfig_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Install a SpudBoost config",
+            Filter = $"SpudBoost config (*{PersonalProfiles.FileExtension})|*{PersonalProfiles.FileExtension}",
+        };
+        if (dialog.ShowDialog(this) == true) InstallConfig(dialog.FileName);
+    }
+
+    /// <summary>Adds a config file to My profiles (nothing is applied), then offers to load it with the usual preview.</summary>
+    public async void InstallConfig(string path)
+    {
+        PersonalProfile profile;
+        try { profile = PersonalProfiles.Import(path); }
+        catch (Exception ex) when (ex is FormatException or IOException or UnauthorizedAccessException)
+        {
+            ShowError(ex);
+            return;
+        }
+
+        var name = profile.Name;
+        for (var i = 2; _profiles.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{profile.Name} ({i})";
+        profile.Name = name;
+        _profiles.Add(profile);
+        PersonalProfiles.Save(_profiles);
+        RefreshProfiles();
+        ShowFromTray();
+        NavigateTo("ProfilesPage");
+
+        if (MessageBox.Show(this, $"Installed the config \"{name}\" ({profile.Summary}).\n\nLoad it now? You'll see exactly what changes first.",
+                "SpudBoost", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            await LoadProfileAsync(profile);
+    }
+
+    /// <summary>Selects a sidebar page by its tag (e.g. "ProfilesPage").</summary>
+    void NavigateTo(string tag)
+    {
+        foreach (var nav in NavList.Children.OfType<System.Windows.Controls.RadioButton>())
+            if ((string)nav.Tag == tag) nav.IsChecked = true;
+    }
+
+    /// <summary>A config double-clicked while SpudBoost was already running is handed over through this file.</summary>
+    public static string PendingImportFile => Path.Combine(BackupStore.Folder, "pending-import.txt");
+
+    void CheckPendingImport()
+    {
+        string path;
+        try
+        {
+            if (!File.Exists(PendingImportFile)) return;
+            path = File.ReadAllText(PendingImportFile).Trim();
+            File.Delete(PendingImportFile);
+        }
+        catch (IOException) { return; }
+        if (path.Length > 0) InstallConfig(path);
+    }
+
+    async void LoadProfile_Click(object sender, RoutedEventArgs e) =>
+        await LoadProfileAsync((PersonalProfile)((FrameworkElement)sender).DataContext);
+
+    /// <summary>Previews the changes, then switches tweaks and settings to match the profile.</summary>
+    async Task LoadProfileAsync(PersonalProfile profile)
+    {
         await EnsureTweaksCheckedAsync();
 
         var all = AllTweaks.ToList();

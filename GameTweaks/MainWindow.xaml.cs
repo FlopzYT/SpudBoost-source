@@ -112,6 +112,7 @@ public partial class MainWindow : Window
 
         Loaded += async (_, _) =>
         {
+            CheckPendingImport(); // SpudBoost was started by double-clicking a .spudboost file
             var health = await Task.Run(HealthCheck.Run);
             HealthList.ItemsSource = health;
             HealthCard.Visibility = health.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -165,6 +166,7 @@ public partial class MainWindow : Window
         Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
         Activate();
+        CheckPendingImport(); // a .spudboost file opened while SpudBoost was already running
     }
 
     public void ExitApp()

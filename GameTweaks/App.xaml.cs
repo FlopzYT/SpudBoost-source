@@ -50,6 +50,13 @@ public partial class App : Application
             return;
         }
 
+        // Double-clicked .spudboost file: hand it over (to this copy, or to the one already running).
+        if (e.Args.FirstOrDefault(a => a.EndsWith(PersonalProfiles.FileExtension, StringComparison.OrdinalIgnoreCase)) is { } config)
+        {
+            Directory.CreateDirectory(BackupStore.Folder);
+            File.WriteAllText(GameTweaks.MainWindow.PendingImportFile, Path.GetFullPath(config));
+        }
+
         if (!TakeSingleInstance(e.Args.Contains(RestartedArg)))
         {
             Shutdown();

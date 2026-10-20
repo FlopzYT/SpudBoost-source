@@ -187,7 +187,7 @@
                     </StackPanel>
                 </StackPanel>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="0,0,0,8">
+                <StackPanel x:Name="NavList" Margin="0,0,0,8">
                     <TextBlock Text="OPTIMIZE" Style="{StaticResource NavGroup}" Margin="26,0,0,4"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⚡  Tweaks" Tag="TweaksPage" IsChecked="True" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🎮  Game Boost" Tag="BoostPage" Checked="Nav_Checked" GroupName="Nav"/>
@@ -207,7 +207,6 @@
                     <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📈  Monitor" Tag="MonitorPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📁  My profiles" Tag="ProfilesPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="👥  Share" Tag="SharePage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="↩  Backup &amp; Undo" Tag="BackupPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⚙  Settings" Tag="SettingsPage" Checked="Nav_Checked" GroupName="Nav"/>
                 </StackPanel>
@@ -952,7 +951,7 @@
                 <StackPanel Margin="24,16,24,20">
                     <TextBlock Text="My profiles" Style="{StaticResource PageTitle}"/>
                     <TextBlock Style="{StaticResource PageSubtitle}"
-                               Text="Save your current setup under a name and switch back to it any time. Loading a profile shows what will change first, then turns tweaks on and off to match (using SpudBoost's normal undo) and puts back the saved game settings and crosshairs."/>
+                               Text="Save your current setup under a name, switch back to it any time, and publish it so anyone can install it. Loading a profile shows what will change first, then turns tweaks on and off to match (using SpudBoost's normal undo) and puts back the saved game settings and crosshairs."/>
                     <TextBlock Text="Save current setup" Style="{StaticResource SectionTitle}"/>
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
@@ -969,7 +968,13 @@
                             </WrapPanel>
                         </StackPanel>
                     </Border>
-                    <TextBlock Text="Saved profiles" Style="{StaticResource SectionTitle}" Margin="0,14,0,6"/>
+                    <DockPanel Margin="0,14,0,6">
+                        <Button DockPanel.Dock="Right" Content="Install a config…" Margin="0" Click="InstallConfig_Click"
+                                ToolTip="Add a .spudboost file someone shared with you"/>
+                        <TextBlock Text="Saved profiles" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"
+                               Text="Publish turns a profile into a .spudboost file you can send or post anywhere. Anyone with SpudBoost can double-click it (or use Install a config) to add it. Installing never changes anything until they click Load and confirm the preview."/>
                     <TextBlock x:Name="NoProfilesText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
                                Text="No profiles yet. Set things up the way you like, give it a name above and click Save profile."/>
                     <ItemsControl x:Name="ProfileList">
@@ -979,6 +984,7 @@
                                     <DockPanel>
                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                             <Button Content="Load" Style="{StaticResource PrimaryButton}" Click="LoadProfile_Click"/>
+                                            <Button Content="Publish" Click="PublishProfile_Click" ToolTip="Save as a .spudboost file anyone with SpudBoost can install"/>
                                             <Button Content="Update" Click="UpdateProfile_Click" ToolTip="Replace this profile with your current setup"/>
                                             <Button Content="Delete" Margin="0" Click="DeleteProfile_Click"/>
                                         </StackPanel>
@@ -1138,86 +1144,6 @@
                         <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="20"
                                    Text="How to read it: if GPU usage stays near 95–100% in game, your graphics card is the limit, so lower graphics settings help. If GPU usage is well below that while one CPU core is busy, your CPU is the limit: graphics settings won't help much, but closing background apps, XMP and the CPU tweaks will. GPU temperatures above about 85 °C can mean dust or poor airflow."/>
                     </Border>
-                </StackPanel>
-            </ScrollViewer>
-
-            <!-- Share profiles with friends -->
-            <ScrollViewer x:Name="SharePage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
-                <StackPanel Margin="24,16,24,20">
-                    <TextBlock Text="Share" Style="{StaticResource PageTitle}"/>
-                    <TextBlock Style="{StaticResource PageSubtitle}"
-                               Text="Share your setup with friends as a code, and try theirs. A code only holds which SpudBoost tweaks are on, your Fortnite potato settings and your crosshairs. Nothing personal, and it can't do anything SpudBoost can't."/>
-
-                    <TextBlock Text="Your profile code" Style="{StaticResource SectionTitle}"/>
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="Your name" VerticalAlignment="Center" Width="90"/>
-                                <TextBox x:Name="ProfileNameBox" Width="200"/>
-                            </StackPanel>
-                            <WrapPanel Margin="0,0,0,10">
-                                <CheckBox x:Name="ShareTweaksBox" Content="Tweaks" IsChecked="True" Margin="0,0,16,0"/>
-                                <CheckBox x:Name="ShareFortniteBox" Content="Fortnite potato settings" IsChecked="True" Margin="0,0,16,0"/>
-                                <CheckBox x:Name="ShareCrosshairBox" Content="Crosshairs" IsChecked="True"/>
-                            </WrapPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Copy my profile code" Style="{StaticResource PrimaryButton}" Click="CopyProfile_Click"/>
-                                <TextBlock x:Name="ProfileCopiedText" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <TextBlock Text="Try a friend's code" Style="{StaticResource SectionTitle}" Margin="0,18,0,10"/>
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <TextBox x:Name="FriendCodeBox" Height="60" TextWrapping="Wrap" AcceptsReturn="False" VerticalScrollBarVisibility="Auto"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                <Button Content="Paste" Click="PasteFriendCode_Click"/>
-                                <Button Content="Preview" Click="PreviewFriendCode_Click"/>
-                            </StackPanel>
-                            <Border x:Name="PreviewPanel" Visibility="Collapsed" Margin="0,12,0,0" Padding="14,10" CornerRadius="9" Background="#151920">
-                                <StackPanel>
-                                    <TextBlock x:Name="PreviewTitle" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
-                                    <CheckBox x:Name="ApplyTweaksBox" IsChecked="True" Margin="0,8,0,0"/>
-                                    <TextBlock x:Name="PreviewTweaks" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource SubTextBrush}" Margin="24,0,0,0"/>
-                                    <CheckBox x:Name="ApplyFortniteBox" IsChecked="True" Content="Their Fortnite potato settings (saved to Fortnite, with a backup)"/>
-                                    <CheckBox x:Name="ApplyCrosshairBox" IsChecked="True" Content="Their crosshairs (replaces yours)"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                        <Button Content="Apply selected" Style="{StaticResource PrimaryButton}" Click="ApplyFriendCode_Click"/>
-                                        <TextBox x:Name="SaveFriendNameBox" Width="160" Margin="0,0,8,0" VerticalContentAlignment="Center"/>
-                                        <Button Content="Save to friends" Click="SaveFriend_Click"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-
-                    <TextBlock Text="Friends" Style="{StaticResource SectionTitle}" Margin="0,18,0,10"/>
-                    <TextBlock x:Name="NoFriendsText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
-                               Text="No friends saved yet. Preview a friend's code above and click &quot;Save to friends&quot;. When they send a new code, save it under the same name to update them."/>
-                    <ItemsControl x:Name="FriendsList">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Style="{StaticResource Card}" Padding="18,10">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
-                                            <TextBlock Text="{Binding Summary}" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                            <Button Content="Load" Click="LoadFriend_Click"/>
-                                            <Button Content="Copy code" Click="CopyFriend_Click"/>
-                                            <Button Content="Remove" Margin="0" Click="RemoveFriend_Click"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
                 </StackPanel>
             </ScrollViewer>
 

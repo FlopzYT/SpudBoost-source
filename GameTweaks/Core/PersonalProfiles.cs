@@ -49,4 +49,42 @@ public static class PersonalProfiles
         Directory.CreateDirectory(BackupStore.Folder);
         File.WriteAllText(FilePath, JsonSerializer.Serialize(profiles, new JsonSerializerOptions { WriteIndented = true }));
     }
+
+    // ---- Published config files (.spudboost) ----
+
+    public const string FileExtension = ".spudboost";
+    const string FormatName = "spudboost-config";
+
+    sealed class ConfigFile
+    {
+        public string Format { get; set; } = FormatName;
+        public int Version { get; set; } = 1;
+        public PersonalProfile? Profile { get; set; }
+    }
+
+    /// <summary>Writes a profile to a .spudboost file anyone with SpudBoost can install.</summary>
+    public static void Export(PersonalProfile profile, string path) =>
+        File.WriteAllText(path, JsonSerializer.Serialize(new ConfigFile { Profile = profile }, new JsonSerializerOptions { WriteIndented = true }));
+
+    /// <summary>
+    /// Reads a .spudboost file. Throws FormatException if it isn't a valid SpudBoost config. The result is only data:
+    /// nothing changes until the user loads it (with a preview), and loading only uses SpudBoost's own tweaks and known settings.
+    /// </summary>
+    public static PersonalProfile Import(string path)
+    {
+        var info = new FileInfo(path);
+        if (!info.Exists) throw new FormatException("That config file doesn't exist.");
+        if (info.Length > 512 * 1024) throw new FormatException("That file is too big to be a SpudBoost config.");
+        ConfigFile? file;
+        try { file = JsonSerializer.Deserialize<ConfigFile>(File.ReadAllText(path)); }
+        catch (JsonException) { throw new FormatException("That isn't a SpudBoost config file (or it's damaged)."); }
+        if (file is not { Format: FormatName, Profile: { } p }) throw new FormatException("That isn't a SpudBoost config file.");
+        if (file.Version > 1) throw new FormatException("That config was made with a newer SpudBoost. Update SpudBoost and try again.");
+
+        p.Name = string.IsNullOrWhiteSpace(p.Name) ? Path.GetFileNameWithoutExtension(path) : p.Name.Trim();
+        if (p.Name.Length > 60) p.Name = p.Name[..60];
+        p.Tweaks = p.Tweaks.Where(id => id.Length is > 0 and < 64).Distinct().Take(200).ToList();
+        p.Saved = DateTime.Now;
+        return p;
+    }
 }

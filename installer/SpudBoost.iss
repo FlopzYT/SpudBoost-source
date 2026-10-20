@@ -1,4 +1,4 @@
-﻿; SpudBoost installer (Inno Setup 6). Build with:  ISCC.exe installer\SpudBoost.iss
+; SpudBoost installer (Inno Setup 6). Build with:  ISCC.exe installer\SpudBoost.iss
 ; Expects the published app in ..\release\SpudBoost.exe (dotnet publish GameTweaks -c Release -o release).
 
 #define AppName "SpudBoost"
@@ -30,6 +30,8 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 CloseApplications=yes
+; Tell Explorer the .spudboost file type changed
+ChangesAssociations=yes
 RestartApplications=no
 
 [Tasks]
@@ -49,6 +51,12 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "SpudBoost"; ValueType: string; ValueData: """{app}\{#AppExe}"" --minimized"; Flags: uninsdeletevalue; Tasks: startup; Check: StartupNotDecidedYet
 ; Always remove it on uninstall, even if it was switched on later from Settings (creates nothing on install).
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "SpudBoost"; ValueType: none; Flags: uninsdeletevalue
+
+; Double-clicking a .spudboost config opens it in SpudBoost (per-user, removed on uninstall)
+Root: HKCU; Subkey: "Software\Classes\.spudboost"; ValueType: string; ValueName: ""; ValueData: "SpudBoost.Config"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SpudBoost.Config"; ValueType: string; ValueName: ""; ValueData: "SpudBoost config"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SpudBoost.Config\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExe},0"
+Root: HKCU; Subkey: "Software\Classes\SpudBoost.Config\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent

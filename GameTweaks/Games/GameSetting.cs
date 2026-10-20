@@ -84,11 +84,23 @@ public sealed class GameSetting : ObservableObject
 
     public string DisplayValue => Kind == SettingKind.Slider ? Number.ToString("0", CultureInfo.CurrentCulture) : _raw;
 
-    /// <summary>Sets a preset value: "on"/"off" for toggles, otherwise the raw value.</summary>
+    /// <summary>
+    /// Sets a preset or profile value: "on"/"off" for toggles, a number for sliders (clamped to range), one of the listed
+    /// values for choices. Anything else is ignored, so a config file from someone else can't write arbitrary text into a game's file.
+    /// </summary>
     public void Set(string value)
     {
-        if (Kind == SettingKind.Toggle) IsOn = value is "on" or "true" or "1";
-        else if (Kind == SettingKind.Slider && double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var n)) Number = n;
-        else Raw = value;
+        switch (Kind)
+        {
+            case SettingKind.Toggle:
+                IsOn = value is "on" or "true" or "1";
+                break;
+            case SettingKind.Slider when double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var n):
+                Number = n;
+                break;
+            case SettingKind.Choice when Def.Choices.Any(c => c.Value == value):
+                Raw = value;
+                break;
+        }
     }
 }
