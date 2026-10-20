@@ -233,67 +233,138 @@
             </Setter>
         </Style>
 
-        <!-- Sidebar navigation: hover fades in, the active page gets a sliding accent bar -->
-        <Style x:Key="NavButton" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
+        <!-- Sidebar sections: big rows with a line icon; the selected one gets a soft box and the accent colour -->
+        <Style x:Key="NavIcon" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <ControlTemplate x:Key="SideNavTemplate" TargetType="ButtonBase">
+            <Grid Background="Transparent">
+                <Border x:Name="Hover" CornerRadius="10" Background="#161B27" Opacity="0"/>
+                <Border x:Name="Sel" CornerRadius="10" Background="#1A2030" BorderBrush="#283044" BorderThickness="1" Opacity="0"/>
+                <ContentPresenter Margin="14,0" VerticalAlignment="Center"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+                <Trigger Property="ToggleButton.IsChecked" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <Style x:Key="SideNav" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#9AA3B5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Margin" Value="12,2"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="10,0"/>
+            <Setter Property="GroupName" Value="Nav"/>
+            <Setter Property="Template" Value="{StaticResource SideNavTemplate}"/>
+        </Style>
+        <Style x:Key="SideLink" TargetType="Button">
+            <Setter Property="Foreground" Value="#9AA3B5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Margin" Value="12,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template" Value="{StaticResource SideNavTemplate}"/>
+        </Style>
+        <!-- Slanted "NEW" tag next to a sidebar section -->
+        <Style x:Key="NewBadge" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="7,1"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <SkewTransform AngleX="-14"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Tabs inside a card: accent text and underline on the selected one -->
+        <Style x:Key="UnderlineTab" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,18,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Grid Background="Transparent">
-                            <Border x:Name="Hover" CornerRadius="10" Background="{StaticResource CardBrush}" Opacity="0"/>
-                            <Border x:Name="Sel" CornerRadius="10" Background="{DynamicResource AccentDimBrush}" Opacity="0"/>
-                            <Border x:Name="Bar" Width="3" CornerRadius="2" Background="{DynamicResource AccentBrush}" HorizontalAlignment="Left"
-                                    Margin="0,7" Opacity="0" RenderTransformOrigin="0.5,0.5">
-                                <Border.RenderTransform>
-                                    <ScaleTransform x:Name="BarScale" ScaleY="0.2"/>
-                                </Border.RenderTransform>
-                            </Border>
-                            <ContentPresenter Margin="14,6"/>
+                            <ContentPresenter Margin="2,14"/>
+                            <Border x:Name="Line" Height="2" VerticalAlignment="Bottom" Background="{DynamicResource AccentBrush}" Opacity="0"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
-                                            <DoubleAnimation Storyboard.TargetName="Bar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
-                                            <DoubleAnimation Storyboard.TargetName="BarScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.3">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <BackEase EasingMode="EaseOut" Amplitude="0.4"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2"/>
-                                            <DoubleAnimation Storyboard.TargetName="Bar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
-                                            <DoubleAnimation Storyboard.TargetName="BarScale" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.15"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
+                                <Setter TargetName="Line" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Tabs along the top for sections with several pages -->
+        <Style x:Key="SubTab" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" CornerRadius="8" Padding="12,5" Background="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#161B27"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentDimBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

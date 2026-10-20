@@ -143,13 +143,6 @@ public partial class MainWindow
             await LoadProfileAsync(profile);
     }
 
-    /// <summary>Selects a sidebar page by its tag (e.g. "ProfilesPage").</summary>
-    void NavigateTo(string tag)
-    {
-        foreach (var nav in NavList.Children.OfType<System.Windows.Controls.RadioButton>())
-            if ((string)nav.Tag == tag) nav.IsChecked = true;
-    }
-
     /// <summary>A config double-clicked while SpudBoost was already running is handed over through this file.</summary>
     public static string PendingImportFile => Path.Combine(BackupStore.Folder, "pending-import.txt");
 

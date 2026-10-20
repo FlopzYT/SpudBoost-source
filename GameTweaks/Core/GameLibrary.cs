@@ -22,6 +22,12 @@ public sealed class LibraryGame
     public string? InstallFolder { get; init; }
     public string? CoverPath { get; init; }
     public string? IconExe { get; init; }
+    public string? SteamAppId { get; init; }
+    /// <summary>Epic app name (e.g. "Fortnite").</summary>
+    public string? EpicAppName { get; init; }
+
+    /// <summary>Stable id used for settings and tweak ids, e.g. "steam-730".</summary>
+    public string Key => SteamAppId != null ? $"steam-{SteamAppId}" : EpicAppName != null ? $"epic-{EpicAppName.ToLowerInvariant()}" : "ms-minecraft";
 
     ImageSource? _image;
     bool _imageLoaded;
@@ -88,6 +94,7 @@ public static class GameLibrary
                     Name = Str("DisplayName") is { Length: > 0 } n ? n : app,
                     Source = "Epic Games",
                     LaunchTarget = $"com.epicgames.launcher://apps/{Uri.EscapeDataString(Str("CatalogNamespace"))}%3A{Uri.EscapeDataString(Str("CatalogItemId"))}%3A{Uri.EscapeDataString(app)}?action=launch&silent=true",
+                    EpicAppName = app,
                     InstallFolder = dir,
                     IconExe = File.Exists(exePath) ? exePath : null,
                 };
@@ -130,6 +137,7 @@ public static class GameLibrary
                     Name = name,
                     Source = "Steam",
                     LaunchTarget = $"steam://rungameid/{id}",
+                    SteamAppId = id,
                     InstallFolder = Directory.Exists(dir) ? dir : null,
                     CoverPath = SteamCover(steam, id),
                 };

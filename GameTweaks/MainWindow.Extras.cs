@@ -21,8 +21,9 @@ public partial class MainWindow
         _libraryLoaded = true;
         LibraryStatus.Text = "Looking for games...";
         _library = await Task.Run(GameLibrary.Scan);
-        FilterLibrary();
+        SortLibrary();
         UpdateHome();
+        await LoadKnownLibraryTweaksAsync();
     }
 
     void FilterLibrary()
@@ -46,9 +47,11 @@ public partial class MainWindow
         if (Launch(game)) SetStatus($"Starting {game.Name}...");
     }
 
-    async void BoostPlay_Click(object sender, RoutedEventArgs e)
+    async void BoostPlay_Click(object sender, RoutedEventArgs e) =>
+        await BoostAndPlayAsync((LibraryGame)((FrameworkElement)sender).DataContext);
+
+    async Task BoostAndPlayAsync(LibraryGame game)
     {
-        var game = (LibraryGame)((FrameworkElement)sender).DataContext;
         _booster.Enabled = true;
         var closed = _settings.AppsToClose.Count > 0 ? await Task.Run(() => Boost.ProcessCleaner.Close(_settings.AppsToClose.ToList())) : [];
         if (!Launch(game)) return;

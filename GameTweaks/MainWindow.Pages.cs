@@ -231,6 +231,8 @@ public partial class MainWindow
             catch (InvalidOperationException ex) { problems.Add(ex.Message); }
         }
         CleanButton.IsEnabled = true;
+        _settings.LastAutoClean = DateTime.Now; // also counts as the last Boost-Up clean
+        _settings.Save();
         await ScanCleanerAsync();
         CleanerTotal.Text = $"Freed {Cleaner.FormatSize(freed)}." + (problems.Count > 0 ? " " + string.Join(" ", problems) : "");
         SetStatus(CleanerTotal.Text);

@@ -96,7 +96,7 @@
                     <ScaleTransform x:Name="TileScale"/>
                 </Border.RenderTransform>
                 <StackPanel>
-                    <Grid Height="200">
+                    <Grid Height="200" Cursor="Hand" MouseLeftButtonUp="GameTile_Click" ToolTip="Open game page">
                         <Grid.Clip>
                             <RectangleGeometry Rect="0,0,148,200" RadiusX="13" RadiusY="13"/>
                         </Grid.Clip>
@@ -213,7 +213,10 @@
         <!-- Top bar: compact status chips (admin, restart needed, update) -->
         <Border Grid.Column="1" Height="46" Padding="20,0,0,0">
             <DockPanel LastChildFill="False">
-                <TextBlock x:Name="PageHeading" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                <TextBlock x:Name="PageHeading" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold"/>
+                <!-- Page tabs for sections with several pages (filled in from code) -->
+                <StackPanel x:Name="SubNav" DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0"
+                            WindowChrome.IsHitTestVisibleInChrome="True"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="True">
                     <Button Style="{StaticResource ChromeButton}" Content="&#xE921;" ToolTip="Minimise" Click="MinimizeWindow_Click"/>
                     <Button x:Name="MaximizeButton" Style="{StaticResource ChromeButton}" Content="&#xE922;" ToolTip="Maximise" Click="MaximizeWindow_Click"/>
@@ -261,31 +264,61 @@
                         <TextBlock Text="Potato PC? Boost it." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
                     </StackPanel>
                 </StackPanel>
+                <!-- Get Support stays at the bottom -->
+                <Button DockPanel.Dock="Bottom" Style="{StaticResource SideLink}" Margin="12,2,12,12" Click="GetSupport_Click" ToolTip="Opens SpudBoost's GitHub page to report a problem or ask a question">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Style="{StaticResource NavIcon}" Text="&#xE8A7;" FontSize="15" Margin="0" Width="Auto"/>
+                        <TextBlock Style="{StaticResource NavIcon}" Text="&#xE897;"/>
+                        <TextBlock Text="Get Support" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Button>
                 <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                <StackPanel x:Name="NavList" Margin="0,0,0,8">
-                    <RadioButton Style="{StaticResource NavButton}" Content="🏠  Home" Tag="HomePage" IsChecked="True" Checked="Nav_Checked" GroupName="Nav"/>
-                    <TextBlock Text="OPTIMIZE" Style="{StaticResource NavGroup}"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="⚡  Tweaks" Tag="TweaksPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🎮  Game Boost" Tag="BoostPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🌐  Network" Tag="NetworkPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🚀  Startup apps" Tag="StartupPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🧹  Cleaner" Tag="CleanerPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🗑  Debloater" Tag="DebloatPage" Checked="Nav_Checked" GroupName="Nav"/>
-
-                    <TextBlock Text="GAMES" Style="{StaticResource NavGroup}"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🕹  Library" Tag="LibraryPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🥔  Fortnite" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🧱  Roblox" Tag="Game:roblox" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="⛏  Minecraft" Tag="Game:minecraft" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🔫  CS2" Tag="Game:cs2" Checked="Nav_Checked" GroupName="Nav"/>
-
-                    <TextBlock Text="TOOLS" Style="{StaticResource NavGroup}"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🎯  Crosshair" Tag="CrosshairPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="📈  Monitor" Tag="MonitorPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="📁  My profiles" Tag="ProfilesPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="↩  Backup &amp; Undo" Tag="BackupPage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="⚙  Settings" Tag="SettingsPage" Checked="Nav_Checked" GroupName="Nav"/>
+                <StackPanel x:Name="NavList" Margin="0,6,0,8">
+                    <RadioButton Style="{StaticResource SideNav}" Tag="home" IsChecked="True" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE80F;"/>
+                            <TextBlock Text="Home" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource SideNav}" Tag="optimize" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE945;"/>
+                            <TextBlock Text="Optimizations" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource SideNav}" Tag="boost" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xEC4A;"/>
+                            <TextBlock Text="Boost-Up" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource SideNav}" Tag="games" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE7FC;"/>
+                            <TextBlock Text="Games" VerticalAlignment="Center"/>
+                            <Border Style="{StaticResource NewBadge}" Margin="10,0,0,0" HorizontalAlignment="Left">
+                                <TextBlock Text="NEW" FontSize="10" FontWeight="Black" FontStyle="Italic" Foreground="#0B0B0B"/>
+                            </Border>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource SideNav}" Tag="monitor" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE9D9;"/>
+                            <TextBlock Text="Hardware Monitor" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource SideNav}" Tag="backups" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE81C;"/>
+                            <TextBlock Text="Profiles &amp; Backups" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource SideNav}" Tag="settings" Checked="Section_Checked">
+                        <DockPanel>
+                            <TextBlock Style="{StaticResource NavIcon}" Text="&#xE713;"/>
+                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </RadioButton>
                 </StackPanel>
                 </ScrollViewer>
             </DockPanel>
@@ -1256,6 +1289,203 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </StackPanel>
+            </ScrollViewer>
+
+            <!-- One game: info, launch, how optimized it is, its own tweaks -->
+            <ScrollViewer x:Name="GameDetailPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <Grid Margin="24,4,24,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="330"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Button Grid.ColumnSpan="3" Content="‹  Back to Library" HorizontalAlignment="Left" Margin="0,0,0,10" Padding="10,4" Click="HomeLibrary_Click"/>
+
+                    <!-- Header: cover, name, description, tags, facts -->
+                    <DockPanel Grid.Row="1" Margin="0,0,0,16">
+                        <Border DockPanel.Dock="Left" Width="140" Height="187" CornerRadius="12" Background="#10131C" Margin="0,0,18,0">
+                            <Grid>
+                                <Grid.Clip>
+                                    <RectangleGeometry Rect="0,0,140,187" RadiusX="12" RadiusY="12"/>
+                                </Grid.Clip>
+                                <TextBlock x:Name="DetailInitial" FontSize="54" FontWeight="Bold" Foreground="#2C3346" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image x:Name="DetailCover" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel>
+                            <TextBlock x:Name="DetailName" FontSize="26" FontWeight="Bold" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="DetailDescription" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" LineHeight="20" Margin="0,6,0,10"
+                                       MaxHeight="80" TextTrimming="WordEllipsis"/>
+                            <ItemsControl x:Name="DetailTags" Margin="0,0,0,10">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" CornerRadius="6" Padding="8,2" Margin="0,0,6,4">
+                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#C5CBD8"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="DetailRelease" Foreground="#B5BCCB" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="DetailDeveloper" Foreground="#B5BCCB"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Launch and status -->
+                    <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Bottom" Margin="0,0,0,16" Padding="16,14">
+                        <StackPanel>
+                            <DockPanel>
+                                <ToggleButton x:Name="DetailFavorite" DockPanel.Dock="Right" Width="40" Height="38" Margin="8,0,0,0" Cursor="Hand"
+                                              ToolTip="Favourite: shows first on Home and in the Library" Click="DetailFavorite_Click">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border x:Name="Bd" CornerRadius="10" BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" Background="Transparent">
+                                                <TextBlock x:Name="Star" Text="&#xE734;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Star" Property="Text" Value="&#xE735;"/>
+                                                    <Setter TargetName="Star" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                                <Button x:Name="DetailLaunch" Style="{StaticResource PrimaryButton}" Margin="0" Height="38" FontSize="14" Click="DetailLaunch_Click"
+                                        ToolTip="Boost &amp; Play: Game Boost on, close-list apps closed, then the game starts">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE768;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Launch Game"/>
+                                    </StackPanel>
+                                </Button>
+                            </DockPanel>
+                            <DockPanel Margin="0,16,0,8">
+                                <TextBlock x:Name="DetailPercent" DockPanel.Dock="Right" FontWeight="Bold"/>
+                                <TextBlock Text="Game Status" Foreground="{StaticResource SubTextBrush}"/>
+                            </DockPanel>
+                            <Grid x:Name="DetailBar" Height="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="0*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.ColumnSpan="2" CornerRadius="3" Background="#262D40"/>
+                                <Border CornerRadius="3" Background="{DynamicResource AccentGradientBrush}"/>
+                            </Grid>
+                            <TextBlock x:Name="DetailPending" Foreground="{StaticResource SubTextBrush}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Media / graphics settings tabs -->
+                    <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" VerticalAlignment="Top">
+                        <StackPanel>
+                            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="14,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="DetailMediaTab" Style="{StaticResource UnderlineTab}" GroupName="DetailTabs" IsChecked="True" Checked="DetailTab_Checked"/>
+                                    <RadioButton x:Name="DetailSettingsTab" Style="{StaticResource UnderlineTab}" GroupName="DetailTabs" Content="Graphics Settings" Checked="DetailTab_Checked"/>
+                                </StackPanel>
+                            </Border>
+                            <Grid MinHeight="260">
+                                <ItemsControl x:Name="DetailMedia" Margin="14,14,4,4">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="190" Height="107" CornerRadius="8" Margin="0,0,10,10" Background="#10131C" Cursor="Hand"
+                                                    MouseLeftButtonUp="DetailScreenshot_Click" ToolTip="Open full size">
+                                                <Border.Clip>
+                                                    <RectangleGeometry Rect="0,0,190,107" RadiusX="8" RadiusY="8"/>
+                                                </Border.Clip>
+                                                <Image Source="{Binding}" Stretch="UniformToFill"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel x:Name="DetailEmpty" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360">
+                                    <Border Width="40" Height="40" CornerRadius="20" Background="#1F2535" HorizontalAlignment="Center">
+                                        <TextBlock x:Name="DetailEmptyIcon" Text="&#xE916;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
+                                    </Border>
+                                    <TextBlock x:Name="DetailEmptyTitle" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" Margin="0,10,0,4"/>
+                                    <TextBlock x:Name="DetailEmptyText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" TextAlignment="Center"/>
+                                    <Button x:Name="DetailEmptyButton" HorizontalAlignment="Center" Margin="0,14,0,0" Click="DetailEmptyButton_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Right column: game-specific tweaks and Boost-Up -->
+                    <StackPanel Grid.Row="2" Grid.Column="2">
+                        <Border Style="{StaticResource Card}" Padding="16,14">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" CornerRadius="6" Background="#1F2535" Padding="8,2" VerticalAlignment="Top">
+                                        <TextBlock x:Name="DetailActive" FontSize="12" FontWeight="SemiBold" Foreground="#B5BCCB"/>
+                                    </Border>
+                                    <TextBlock Text="&#xE9D2;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="26" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Left"/>
+                                </DockPanel>
+                                <TextBlock Text="Game-Specific Tweaks" FontWeight="Bold" FontSize="15" Margin="0,10,0,4"/>
+                                <TextBlock x:Name="DetailTweaksText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,10"
+                                           Text="Windows settings just for this game. Each one can be switched back off."/>
+                                <ItemsControl x:Name="DetailTweaks">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,0,0,10" ToolTip="{Binding Description}">
+                                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" Margin="10,0,0,0"
+                                                              IsChecked="{Binding IsOn, Mode=TwoWay}" IsEnabled="{Binding CanToggle}" Click="TweakToggle_Click"/>
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12"/>
+                                                        <Border Style="{StaticResource Badge}" Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="Admin" FontSize="10" Foreground="{DynamicResource AccentBrush}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" MaxHeight="30" TextTrimming="WordEllipsis"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button x:Name="DetailTweaksAll" Content="Turn all on" HorizontalAlignment="Stretch" Margin="0,4,0,0" Click="DetailTweaksAll_Click"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Padding="16,14">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Border x:Name="DetailAttention" DockPanel.Dock="Right" CornerRadius="6" Background="#3A1A1E" Padding="8,2" VerticalAlignment="Top">
+                                        <TextBlock Text="ⓘ Needs Attention" FontSize="12" FontWeight="SemiBold" Foreground="#FF5A6A"/>
+                                    </Border>
+                                    <TextBlock Text="&#xEC4A;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="26" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Left"/>
+                                </DockPanel>
+                                <TextBlock Text="Run a Boost-Up now" FontWeight="Bold" FontSize="15" Margin="0,10,0,4"/>
+                                <TextBlock x:Name="DetailBoostText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,12"
+                                           Text="Clear junk files and caches before you play, and make sure Game Boost is on."/>
+                                <Button Content="Clean up now  ›" HorizontalAlignment="Stretch" Click="DetailBoostUp_Click"/>
+                            </StackPanel>
+                        </Border>
+                        <Border x:Name="DetailSpudPageCard" Style="{StaticResource Card}" Padding="16,14">
+                            <StackPanel>
+                                <TextBlock x:Name="DetailSpudPageTitle" FontWeight="Bold" FontSize="15" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="DetailSpudPageText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,12"/>
+                                <Button x:Name="DetailSpudPageButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0" Click="DetailSpudPage_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
             </ScrollViewer>
 
             <!-- Cleaner -->

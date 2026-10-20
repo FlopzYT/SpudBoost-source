@@ -41,6 +41,8 @@ public sealed class AppSettings
     /// <summary>Accent colour as #RRGGBB (SpudBoost orange by default).</summary>
     public string AccentColor { get; set; } = "#FF7A1A";
     public bool GpuHeatAlerts { get; set; } = true;
+    /// <summary>Library keys (e.g. "steam-730") of favourite games, shown first.</summary>
+    public List<string> FavoriteGames { get; set; } = [];
 
     /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
     public string? LastNotifiedUpdate { get; set; }

@@ -37,7 +37,8 @@ public partial class MainWindow
             .ToDictionary(g => g.Key, g => g.Sum(s => s.Minutes), StringComparer.OrdinalIgnoreCase) ?? [];
         double Played(LibraryGame g) => playtime.Where(p => g.Name.Replace(" ", "").Contains(p.Key, StringComparison.OrdinalIgnoreCase) ||
                                                             (g.InstallFolder?.Contains(p.Key, StringComparison.OrdinalIgnoreCase) ?? false)).Sum(p => p.Value);
-        HomeGames.ItemsSource = _library.OrderByDescending(Played).ThenBy(g => g.Name).Take(5).ToList();
+        HomeGames.ItemsSource = _library.OrderByDescending(g => _settings.FavoriteGames.Contains(g.Key)).ThenByDescending(Played).ThenBy(g => g.Name).Take(5).ToList();
+        UpdateDetailStatus();
 
         if (_score is { } s)
         {

@@ -32,7 +32,7 @@ public partial class MainWindow : Window
     readonly List<Tweak> _networkTweaks;
     readonly List<Tweak> _fortniteTweaks;
 
-    IEnumerable<Tweak> AllTweaks => _systemTweaks.Concat(_networkTweaks).Concat(_fortniteTweaks).Concat(_gameTweaks);
+    IEnumerable<Tweak> AllTweaks => _systemTweaks.Concat(_networkTweaks).Concat(_fortniteTweaks).Concat(_gameTweaks).Concat(_libraryTweaks.Values.SelectMany(t => t));
 
     /// <summary>AMD's Windows driver ships atiadlxx.dll (the AMD Display Library).</summary>
     static bool HasAmdGpu() => File.Exists(Path.Combine(Environment.SystemDirectory, "atiadlxx.dll"));
@@ -65,7 +65,7 @@ public partial class MainWindow : Window
         AmdPotatoCard.Visibility = HasAmdGpu() ? Visibility.Visible : Visibility.Collapsed;
         _dns = _networkTweaks.OfType<DnsTweak>().Single();
         InitTweakList();
-        PageHeading.Text = "🏠  Home";
+        PageHeading.Text = "Home";
         NetworkList.ItemsSource = _networkTweaks;
 
         _booster = new GameBooster(_settings);
@@ -469,23 +469,6 @@ public partial class MainWindow : Window
     }
 
     // ---- Navigation ----
-
-    void Nav_Checked(object sender, RoutedEventArgs e)
-    {
-        if (Pages == null) return;
-        var target = (string)((RadioButton)sender).Tag;
-        PageHeading.Text = ((RadioButton)sender).Content as string;
-        foreach (FrameworkElement page in Pages.Children)
-        {
-            var show = page.Name == (target.StartsWith("Game:") ? "GamePage" : target);
-            page.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-            if (show) AnimatePageIn(page);
-        }
-        if (target == "FortnitePage") LoadFortnite();
-        if (target == "CrosshairPage") UpdateCrosshairWarning();
-        if (target.StartsWith("Game:")) ShowGame(target[5..]);
-        OnPageShown(target);
-    }
 
     void RestartAdmin_Click(object sender, RoutedEventArgs e)
     {
