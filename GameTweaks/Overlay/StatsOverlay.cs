@@ -124,6 +124,8 @@ public sealed class StatsOverlayController : ObservableObject
     void Tick()
     {
         var inFront = _foreground.FortniteInFront();
+        var interval = TimeSpan.FromMilliseconds(inFront ? 100 : 500); // relaxed while not in game
+        if (_fast.Interval != interval) _fast.Interval = interval;
         if (inFront && _toggleVk != 0)
         {
             var down = ForegroundGame.IsDown(_toggleVk);

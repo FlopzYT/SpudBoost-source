@@ -26,7 +26,7 @@ public static class TweakCatalog
         ["fortnite-gpu"] = "Gaming", ["fortnite-fso"] = "Gaming", ["nvidia-profiles"] = "Gaming",
         ["mouse-accel"] = "Mouse & keyboard", ["sticky-keys"] = "Mouse & keyboard",
         ["transparency"] = "Windows clutter", ["visual-effects"] = "Windows clutter", ["background-apps"] = "Windows clutter",
-        ["windows-tips"] = "Windows clutter", ["search-indexing"] = "Windows clutter",
+        ["windows-tips"] = "Windows clutter", ["search-indexing"] = "Windows clutter", ["store-auto-updates"] = "Windows clutter",
     };
 
     /// <summary>System tweaks, sorted into their Tweaks page sections.</summary>
@@ -248,6 +248,14 @@ public static class TweakCatalog
                 Cu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SoftLandingEnabled", 0),
                 Cu(@"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SystemPaneSuggestionsEnabled", 0),
             ],
+        },
+        new RegistryTweak
+        {
+            Id = "store-auto-updates",
+            Name = "Stop Microsoft Store auto-updating apps",
+            Description = "The Store downloads and installs app updates in the background every 15–30 minutes, which causes regular stutters mid-game. Apps then update when you open the Store. Windows Update itself is not affected.",
+            Values = [Lm(@"SOFTWARE\Policies\Microsoft\WindowsStore", "AutoDownload", 2)],
+            RequiresAdmin = true,
         },
         new ScriptTweak
         {

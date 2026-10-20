@@ -14,7 +14,7 @@ public sealed class CrosshairController : ObservableObject
     const int VkLeftButton = 0x01, VkRightButton = 0x02;
 
     readonly AppSettings _settings;
-    // ~60 checks a second so switching feels instant; each one is a handful of cheap Windows calls.
+    // ~60 checks a second in game so switching feels instant (slowed down outside the game, see Tick).
     readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(16) };
     CrosshairWindow? _window;
     readonly ForegroundGame _foreground = new();
@@ -159,6 +159,9 @@ public sealed class CrosshairController : ObservableObject
     void Tick()
     {
         var inFront = _foreground.FortniteInFront();
+        // Fast checks only while Fortnite is in front; elsewhere 4 a second is plenty and keeps idle CPU near zero.
+        var interval = TimeSpan.FromMilliseconds(inFront ? 16 : 250);
+        if (_timer.Interval != interval) _timer.Interval = interval;
         var show = S.Enabled && (!S.OnlyInGame || inFront);
 
         if (!show)

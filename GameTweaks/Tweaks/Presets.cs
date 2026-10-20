@@ -19,7 +19,7 @@ public static class Presets
     [
         .. SafeTweaks,
         "foreground-boost", "game-priority", "hags", "power-throttling", "memory-compression", "nvidia-profiles",
-        "nagle", "net-throttle", "nic-power", "nic-lso",
+        "nagle", "net-throttle", "nic-power", "nic-lso", "store-auto-updates",
     ];
 
     static readonly string[] MaxFpsTweaks =
