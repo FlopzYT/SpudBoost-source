@@ -21,6 +21,44 @@ public partial class MainWindow
         }
     }
 
+    // ---- "What's new" after an update ----
+
+    /// <summary>
+    /// Shows the release notes once, the first time a new version runs. A brand-new install gets the welcome screen instead.
+    /// </summary>
+    async void InitWhatsNew()
+    {
+        var current = UpdateChecker.CurrentVersion;
+        var last = _settings.LastSeenVersion;
+        if (last == current.ToString()) return;
+
+        var freshInstall = last == null && !_settings.WelcomeShown;
+        _settings.LastSeenVersion = current.ToString();
+        _settings.Save();
+        if (freshInstall) return;
+
+        var notes = await UpdateChecker.GetReleaseNotesAsync(current);
+        var lines = notes != null ? ReleaseNotes.Parse(notes) : [];
+        if (lines.Count == 0)
+            lines = [new ReleaseNoteLine("SpudBoost was updated. The full list of changes is on GitHub.", false, false)];
+
+        WhatsNewTitle.Text = $"What's new in SpudBoost {current}";
+        WhatsNewList.ItemsSource = lines;
+        WhatsNewMoreButton.Visibility = UpdateChecker.Configured ? Visibility.Visible : Visibility.Collapsed;
+        WhatsNewOverlay.Visibility = Visibility.Visible;
+        WhatsNewOverlay.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(250)));
+    }
+
+    void CloseWhatsNew_Click(object sender, RoutedEventArgs e)
+    {
+        var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(200));
+        fade.Completed += (_, _) => WhatsNewOverlay.Visibility = Visibility.Collapsed;
+        WhatsNewOverlay.BeginAnimation(OpacityProperty, fade);
+    }
+
+    void WhatsNewMore_Click(object sender, RoutedEventArgs e) =>
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(UpdateChecker.ReleasePageUrl(UpdateChecker.CurrentVersion)) { UseShellExecute = true });
+
     async void Preset_Click(object sender, RoutedEventArgs e)
     {
         var preset = (Preset)((FrameworkElement)sender).DataContext;

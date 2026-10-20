@@ -101,6 +101,7 @@ public partial class MainWindow : Window
         InitCrosshair();
         InitPages();
         InitPresets();
+        InitWhatsNew();
 
         UpdateTray();
 

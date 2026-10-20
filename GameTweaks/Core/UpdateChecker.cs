@@ -48,6 +48,21 @@ public static class UpdateChecker
         return new UpdateInfo(latest, page, installer);
     }
 
+    /// <summary>The release notes (Markdown) GitHub has for <paramref name="version"/>, or null if unavailable.</summary>
+    public static async Task<string?> GetReleaseNotesAsync(Version version)
+    {
+        if (!Configured) return null;
+        try
+        {
+            using var http = NewClient(TimeSpan.FromSeconds(10));
+            using var doc = JsonDocument.Parse(await http.GetStringAsync($"https://api.github.com/repos/{Repository}/releases/tags/v{version}"));
+            return doc.RootElement.TryGetProperty("body", out var body) ? body.GetString() : null;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException) { return null; }
+    }
+
+    public static string ReleasePageUrl(Version version) => $"https://github.com/{Repository}/releases/tag/v{version}";
+
     /// <summary>
     /// Downloads the new installer and starts it in silent update mode. The installer closes this copy,
     /// installs over it (keeping all settings) and reopens SpudBoost. Returns false if there's no installer to download.

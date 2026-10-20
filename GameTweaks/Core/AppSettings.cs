@@ -55,6 +55,9 @@ public sealed class AppSettings
     /// <summary>Last time the "your GPU driver is old" reminder was shown.</summary>
     public DateTime LastDriverReminder { get; set; }
 
+    /// <summary>Version whose "What's new" pop-up was last shown (or that was freshly installed).</summary>
+    public string? LastSeenVersion { get; set; }
+
     /// <summary>The first-run welcome screen (pick a preset) has been shown.</summary>
     public bool WelcomeShown { get; set; }
 

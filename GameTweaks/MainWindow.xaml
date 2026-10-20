@@ -1107,6 +1107,49 @@
             <TextBlock x:Name="StatusText" Foreground="{StaticResource SubTextBrush}" Text="Ready." TextTrimming="CharacterEllipsis"/>
         </Border>
 
+        <!-- After an update: what's new and fixed in this version -->
+        <Grid x:Name="WhatsNewOverlay" Grid.ColumnSpan="2" Grid.RowSpan="3" Visibility="Collapsed" Background="#D90B0D11">
+            <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" CornerRadius="14"
+                    Padding="26,22" MaxWidth="640" MaxHeight="560" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+                        <Image Source="logo.png" Width="36" Height="36" Margin="0,0,12,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="WhatsNewTitle" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="You're up to date. Here's what changed." Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Content="Got it" Style="{StaticResource PrimaryButton}" Click="CloseWhatsNew_Click"/>
+                        <Button x:Name="WhatsNewMoreButton" Content="See full notes on GitHub" Click="WhatsNewMore_Click"/>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="WhatsNewList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock x:Name="Line" Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" Margin="0,2"
+                                               Foreground="{StaticResource SubTextBrush}"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsHeading}" Value="True">
+                                            <Setter TargetName="Line" Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            <Setter TargetName="Line" Property="FontWeight" Value="SemiBold"/>
+                                            <Setter TargetName="Line" Property="FontSize" Value="14"/>
+                                            <Setter TargetName="Line" Property="Margin" Value="0,10,0,2"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsBullet}" Value="True">
+                                            <Setter TargetName="Line" Property="Text" Value="{Binding Text, StringFormat=•  {0}}"/>
+                                            <Setter TargetName="Line" Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                            <Setter TargetName="Line" Property="Margin" Value="8,3,0,3"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
         <!-- First-run welcome: pick a preset or skip -->
         <Grid x:Name="WelcomeOverlay" Grid.ColumnSpan="2" Grid.RowSpan="3" Visibility="Collapsed" Background="#D90B0D11">
             <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" CornerRadius="14"
