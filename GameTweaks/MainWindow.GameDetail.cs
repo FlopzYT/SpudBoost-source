@@ -165,7 +165,7 @@ public partial class MainWindow
         var pending = tweaks.Where(t => !t.IsOn && t.CanToggle && !t.Id.EndsWith("-fso")).ToList();
         if (pending.Count == 0)
         {
-            SetStatus(tweaks.Any(t => !t.CanToggle) ? "The rest need admin: click \"Restart as admin\"." : "Everything for this game is already on.");
+            SetStatus(tweaks.Any(t => !t.CanToggle) ? "The rest need admin: click \"Run as admin\"." : "Everything for this game is already on.");
             return;
         }
         await EnsureRestorePointAsync();

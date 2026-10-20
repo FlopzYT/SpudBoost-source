@@ -121,7 +121,7 @@ public partial class MainWindow
         }
 
         var summary = $"{preset.Name} preset applied: {applicable.Count - failures.Count(f => !f.StartsWith("Fortnite"))} tweak(s) turned on.{fortniteNote}";
-        if (needAdmin.Count > 0) summary += $" {needAdmin.Count} more need admin: click \"Restart as admin\" and apply the preset again.";
+        if (needAdmin.Count > 0) summary += $" {needAdmin.Count} more need admin: click \"Run as admin\" and apply the preset again.";
         SetStatus(summary);
         if (failures.Count > 0) ShowError(new Exception(string.Join("\n\n", failures)));
         else MessageBox.Show(this, summary, "SpudBoost", MessageBoxButton.OK, MessageBoxImage.Information);

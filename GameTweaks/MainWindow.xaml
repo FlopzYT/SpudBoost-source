@@ -37,6 +37,40 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        <!-- One tweak as a tile in a sideways row: name and badges, short description, switch at the bottom -->
+        <DataTemplate x:Key="TweakTile">
+            <Border x:Name="Tile" Width="250" Height="168" Margin="0,0,12,0" CornerRadius="14" Padding="16,14"
+                    Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    ToolTip="{Binding Description}">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}"
+                                      IsChecked="{Binding IsOn, Mode=TwoWay}" IsEnabled="{Binding CanToggle}" Click="TweakToggle_Click"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Style="{StaticResource Badge}" Margin="0,0,6,0" Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Admin" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                            </Border>
+                            <Border Style="{StaticResource Badge}" Margin="0" Visibility="{Binding PendingNote, Converter={x:Static local:NotNullToVisibility.Instance}}">
+                                <TextBlock Text="{Binding PendingNote}" FontSize="11" Foreground="{StaticResource WarnBrush}"/>
+                            </Border>
+                        </StackPanel>
+                    </DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" MaxHeight="40" TextTrimming="WordEllipsis"/>
+                    <TextBlock Text="{Binding Description}" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="0,6,0,0" LineHeight="17"/>
+                </DockPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Tile" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Tile" Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
+                    <Setter TargetName="Tile" Property="Background" Value="{StaticResource CardHoverBrush}"/>
+                </Trigger>
+                <!-- Switched-on tiles get an accent outline -->
+                <DataTrigger Binding="{Binding IsOn}" Value="True">
+                    <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource AccentDimBrush}"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
         <!-- Game setting rows: slider, switch or dropdown -->
         <games:GameSettingTemplateSelector x:Key="GameSettingSelector" xmlns:games="clr-namespace:GameTweaks.Games">
             <games:GameSettingTemplateSelector.Slider>
@@ -233,19 +267,19 @@
                             <Button x:Name="UpdateNowButton" Content="Update now" Padding="10,2" Margin="8,0,0,0" FontSize="12" Click="UpdateNow_Click" Style="{StaticResource PrimaryButton}"/>
                         </StackPanel>
                     </Border>
-                    <Border x:Name="PendingCard" Visibility="Collapsed" CornerRadius="14" Padding="12,3,4,3" Margin="6,0,0,0"
+                    <Border x:Name="PendingCard" Visibility="Collapsed" CornerRadius="14" Padding="4,3,4,3" Margin="6,0,0,0"
                             Background="#2E2814" BorderBrush="{StaticResource WarnBrush}" BorderThickness="1"
                             ToolTip="{Binding Text, ElementName=PendingText}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource WarnBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="PendingTitle" Visibility="Collapsed" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource WarnBrush}" VerticalAlignment="Center"/>
                             <TextBlock x:Name="PendingText" Visibility="Collapsed"/>
                             <Button x:Name="PendingButton" Padding="10,2" Margin="8,0,0,0" FontSize="12" Click="PendingAction_Click" Style="{StaticResource PrimaryButton}"/>
                         </StackPanel>
                     </Border>
-                    <Border CornerRadius="14" Padding="12,3,4,3" Margin="6,0,0,0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <Border CornerRadius="14" Padding="4,3,4,3" Margin="6,0,0,0" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="AdminText" FontSize="12" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <Button x:Name="AdminButton" Content="Restart as admin" Padding="10,2" FontSize="12" Margin="0" Click="RestartAdmin_Click" Style="{StaticResource PrimaryButton}"/>
+                            <TextBlock x:Name="AdminText" FontSize="12" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center" Margin="8,0,8,0"/>
+                            <Button x:Name="AdminButton" Content="Run as admin" Padding="10,2" FontSize="12" Margin="0" Click="RestartAdmin_Click" Style="{StaticResource PrimaryButton}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -527,14 +561,54 @@
                                        IsHitTestVisible="False" Foreground="#5D6577" FontSize="12"/>
                         </Grid>
                     </DockPanel>
-                    <ItemsControl x:Name="SystemList" ItemTemplate="{StaticResource TweakCard}">
+                    <!-- One sideways-scrolling row of tweak tiles per section -->
+                    <ItemsControl x:Name="SystemList" ItemTemplate="{StaticResource TweakTile}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.GroupStyle>
                             <GroupStyle>
-                                <GroupStyle.HeaderTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" Style="{StaticResource SectionTitle}" Foreground="{StaticResource SubTextBrush}" Margin="2,10,0,6"/>
-                                    </DataTemplate>
-                                </GroupStyle.HeaderTemplate>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="GroupItem">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="GroupItem">
+                                                    <StackPanel Margin="0,8,0,6">
+                                                        <DockPanel Margin="2,0,0,8">
+                                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                                                <Button Content="&#xE76B;" Tag="-1" Style="{StaticResource RowArrow}" Click="RowScroll_Click" ToolTip="Scroll left"/>
+                                                                <Button Content="&#xE76C;" Tag="1" Style="{StaticResource RowArrow}" Click="RowScroll_Click" ToolTip="Scroll right" Margin="6,0,0,0"/>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                            <Border CornerRadius="6" Background="#1F2535" Padding="7,1" Margin="10,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                                <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="#B5BCCB">
+                                                                    <Run Text="{Binding ItemCount, Mode=OneWay}"/><Run Text=" tweaks"/>
+                                                                </TextBlock>
+                                                            </Border>
+                                                        </DockPanel>
+                                                        <Grid>
+                                                            <ScrollViewer x:Name="RowScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                                          PreviewMouseWheel="RowScroll_MouseWheel" Padding="0,0,0,6">
+                                                                <ItemsPresenter/>
+                                                            </ScrollViewer>
+                                                            <!-- Fade on the right edge hints that the row keeps going -->
+                                                            <Rectangle Width="40" HorizontalAlignment="Right" IsHitTestVisible="False" Margin="0,0,0,16">
+                                                                <Rectangle.Fill>
+                                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                        <GradientStop Color="#000A0C12" Offset="0"/>
+                                                                        <GradientStop Color="#FF0A0C12" Offset="1"/>
+                                                                    </LinearGradientBrush>
+                                                                </Rectangle.Fill>
+                                                            </Rectangle>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
                             </GroupStyle>
                         </ItemsControl.GroupStyle>
                     </ItemsControl>
@@ -1812,10 +1886,10 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                     <TextBlock x:Name="WelcomeAdminNote" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource WarnBrush}" Margin="0,4,0,0"
-                               Text="Tip: some tweaks need administrator rights. Restart as admin first to apply the full preset; this screen will show again."/>
+                               Text="Tip: some tweaks need administrator rights. Run as admin first to apply the full preset; this screen will show again."/>
                     <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
                         <Button Content="Skip, I'll choose tweaks myself" Click="SkipWelcome_Click"/>
-                        <Button Content="Restart as admin" Style="{StaticResource PrimaryButton}" Click="RestartAdmin_Click"
+                        <Button Content="Run as admin" Style="{StaticResource PrimaryButton}" Click="RestartAdmin_Click"
                                 Visibility="{Binding Visibility, ElementName=WelcomeAdminNote}"/>
                     </StackPanel>
                 </StackPanel>

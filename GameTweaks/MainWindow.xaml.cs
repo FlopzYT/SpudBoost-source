@@ -95,10 +95,11 @@ public partial class MainWindow : Window
         ResPresetCombo.SelectedIndex = 0;
         LoadFortnite();
 
-        AdminText.Text = Shell.IsAdmin
-            ? "✓ Admin mode"
-            : "Some tweaks need admin";
+        // Kept short so it fits next to the page tabs in the title bar.
+        AdminText.Text = "✓ Admin mode";
+        AdminText.Visibility = Shell.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         AdminButton.Visibility = Shell.IsAdmin ? Visibility.Collapsed : Visibility.Visible;
+        AdminButton.ToolTip = "Some tweaks need administrator rights. SpudBoost restarts with them.";
         BackupPathText.Text = BackupStore.Folder;
 
         StartupList.ItemsSource = StartupManager.List();
@@ -737,7 +738,7 @@ public partial class MainWindow : Window
     {
         if (!Shell.IsAdmin)
         {
-            SetStatus("Creating a restore point needs administrator rights. Use \"Restart as admin\".");
+            SetStatus("Creating a restore point needs administrator rights. Use \"Run as admin\".");
             return;
         }
         SetStatus("Creating restore point (this can take a minute)...");

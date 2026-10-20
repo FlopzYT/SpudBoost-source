@@ -44,7 +44,7 @@ public static class Benchmark
     public static async Task<BenchmarkResult> RunAsync(string processName, string label, int seconds)
     {
         if (!Shell.IsAdmin)
-            throw new InvalidOperationException("Measuring FPS needs administrator rights. Use \"Restart as admin\" first.");
+            throw new InvalidOperationException("Measuring FPS needs administrator rights. Use \"Run as admin\" first.");
         if (Process.GetProcessesByName(processName).Length == 0)
             throw new InvalidOperationException($"{processName} isn't running. Start the game and get into a match first.");
 

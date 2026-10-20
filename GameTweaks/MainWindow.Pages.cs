@@ -131,7 +131,7 @@ public partial class MainWindow
         if (_fortniteTweaks.FirstOrDefault(t => t.Id == "nvidia-potato") is not { HasBackup: true } potato) return;
         if (!potato.CanToggle)
         {
-            SetStatus("Flatness saved. Restart as admin and switch NVIDIA potato textures off and on to use it.");
+            SetStatus("Flatness saved. Run as admin and switch NVIDIA potato textures off and on to use it.");
             return;
         }
         SetStatus($"Changing NVIDIA potato textures to {NvidiaProfileTweak.FlatnessLevels[level - 1]}...");
@@ -163,6 +163,48 @@ public partial class MainWindow
              t.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
              t.Category.Contains(query, StringComparison.OrdinalIgnoreCase));
         NoTweaksFound.Visibility = view.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    // ---- Sideways tweak rows ----
+
+    /// <summary>‹ › buttons: slide the row about two tiles.</summary>
+    void RowScroll_Click(object sender, RoutedEventArgs e)
+    {
+        var button = (FrameworkElement)sender;
+        DependencyObject? node = button;
+        while (node != null && node is not GroupItem) node = VisualTreeHelper.GetParent(node);
+        if (node is not GroupItem group || group.Template.FindName("RowScroll", group) is not ScrollViewer row) return;
+        SmoothScroll(row, row.HorizontalOffset + int.Parse((string)button.Tag) * 524);
+    }
+
+    /// <summary>Shift + wheel scrolls the row sideways; a plain wheel scrolls the page as usual.</summary>
+    void RowScroll_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        var row = (ScrollViewer)sender;
+        e.Handled = true;
+        if (System.Windows.Input.Keyboard.Modifiers.HasFlag(System.Windows.Input.ModifierKeys.Shift))
+        {
+            SmoothScroll(row, row.HorizontalOffset - e.Delta * 1.5);
+            return;
+        }
+        // A nested ScrollViewer swallows the wheel, so hand it to the page.
+        if (VisualTreeHelper.GetParent(row) is UIElement parent)
+            parent.RaiseEvent(new System.Windows.Input.MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta) { RoutedEvent = MouseWheelEvent, Source = row });
+    }
+
+    static void SmoothScroll(ScrollViewer row, double target)
+    {
+        target = Math.Clamp(target, 0, row.ScrollableWidth);
+        var from = row.HorizontalOffset;
+        var start = DateTime.Now;
+        EventHandler? tick = null;
+        tick = (_, _) =>
+        {
+            var t = Math.Min(1, (DateTime.Now - start).TotalMilliseconds / 320);
+            row.ScrollToHorizontalOffset(from + (target - from) * (1 - Math.Pow(1 - t, 3)));
+            if (t >= 1) CompositionTarget.Rendering -= tick;
+        };
+        CompositionTarget.Rendering += tick;
     }
 
     void HealthCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
