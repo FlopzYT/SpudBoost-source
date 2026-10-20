@@ -12,7 +12,7 @@ public sealed record UpdateInfo(Version Version, string PageUrl, string? Install
 public static class UpdateChecker
 {
     /// <summary>The GitHub repository releases are published to, as "owner/name". Empty = update checks off.</summary>
-    public const string Repository = "lincman6000/SpudBoost";
+    public const string Repository = "FlopzYT/SpudBoost";
 
     public static Version CurrentVersion { get; } =
         Assembly.GetExecutingAssembly().GetName().Version is { } v ? new Version(v.Major, v.Minor, v.Build) : new Version(1, 0, 0);
