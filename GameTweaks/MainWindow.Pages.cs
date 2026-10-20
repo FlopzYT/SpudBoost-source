@@ -45,6 +45,7 @@ public partial class MainWindow
             _settings.Save();
         };
         RefreshFriends();
+        RefreshProfiles();
 
         // Fade the whole window in when it first appears.
         Loaded += (_, _) =>

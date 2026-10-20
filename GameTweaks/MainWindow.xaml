@@ -33,6 +33,57 @@
                 </Grid>
             </Border>
         </DataTemplate>
+        <!-- Game setting rows: slider, switch or dropdown -->
+        <games:GameSettingTemplateSelector x:Key="GameSettingSelector" xmlns:games="clr-namespace:GameTweaks.Games">
+            <games:GameSettingTemplateSelector.Slider>
+                <DataTemplate>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Label}"/>
+                            <TextBlock Text="{Binding Hint}" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                                       Visibility="{Binding Hint, Converter={x:Static local:NotNullToVisibility.Instance}}"/>
+                        </StackPanel>
+                        <Slider Grid.Column="1" Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Number, Mode=TwoWay}"
+                                TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding DisplayValue}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{StaticResource AccentBrush}"/>
+                    </Grid>
+                </DataTemplate>
+            </games:GameSettingTemplateSelector.Slider>
+            <games:GameSettingTemplateSelector.Toggle>
+                <DataTemplate>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                        <ToggleButton Grid.Column="1" Style="{StaticResource Switch}" HorizontalAlignment="Left" IsChecked="{Binding IsOn, Mode=TwoWay}"/>
+                    </Grid>
+                </DataTemplate>
+            </games:GameSettingTemplateSelector.Toggle>
+            <games:GameSettingTemplateSelector.Choice>
+                <DataTemplate>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Label}"/>
+                            <TextBlock Text="{Binding Hint}" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                                       Visibility="{Binding Hint, Converter={x:Static local:NotNullToVisibility.Instance}}"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" Width="200" HorizontalAlignment="Left" ItemsSource="{Binding ChoiceLabels}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"/>
+                    </Grid>
+                </DataTemplate>
+            </games:GameSettingTemplateSelector.Choice>
+        </games:GameSettingTemplateSelector>
+
         <!-- A preset as a clickable card (Tweaks page and welcome screen) -->
         <DataTemplate x:Key="PresetCard">
             <Button Click="Preset_Click" Margin="0,0,8,8" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
@@ -145,13 +196,17 @@
                     <RadioButton Style="{StaticResource NavButton}" Content="🧹  Cleaner" Tag="CleanerPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🗑  Debloater" Tag="DebloatPage" Checked="Nav_Checked" GroupName="Nav"/>
 
-                    <TextBlock Text="FORTNITE" Style="{StaticResource NavGroup}"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🥔  Potato graphics" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <TextBlock Text="GAMES" Style="{StaticResource NavGroup}"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🥔  Fortnite" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🎯  Crosshair" Tag="CrosshairPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🧱  Roblox" Tag="Game:roblox" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="⛏  Minecraft" Tag="Game:minecraft" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🔫  CS2" Tag="Game:cs2" Checked="Nav_Checked" GroupName="Nav"/>
 
                     <TextBlock Text="TOOLS" Style="{StaticResource NavGroup}"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📈  Monitor" Tag="MonitorPage" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="📁  My profiles" Tag="ProfilesPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="👥  Share" Tag="SharePage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="↩  Backup &amp; Undo" Tag="BackupPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⚙  Settings" Tag="SettingsPage" Checked="Nav_Checked" GroupName="Nav"/>
@@ -446,7 +501,7 @@
                                           SelectedIndex="{Binding WindowMode, Mode=TwoWay}"/>
 
                                 <TextBlock Grid.Row="2" Text="Rendering mode" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="RenderModeCombo" Grid.Row="2" Grid.Column="1" Width="220" HorizontalAlignment="Left" Margin="0,6"
+                                <ComboBox x:Name="RenderModeCombo" Grid.Row="2" Grid.Column="1" Width="300" HorizontalAlignment="Left" Margin="0,6"
                                           SelectedIndex="{Binding RenderMode, Mode=TwoWay}"/>
 
                                 <TextBlock Grid.Row="3" Text="3D resolution" VerticalAlignment="Center"/>
@@ -835,6 +890,103 @@
                                         <TextBlock Grid.Column="1" Text="{Binding Summary}" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
                                     </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- One game's settings (Roblox, Minecraft, CS2): same page, filled from the selected game -->
+            <ScrollViewer x:Name="GamePage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="24,16,24,20">
+                    <TextBlock x:Name="GameTitle" Style="{StaticResource PageTitle}"/>
+                    <TextBlock x:Name="GameDescription" Style="{StaticResource PageSubtitle}"/>
+                    <Border x:Name="GameWarning" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed">
+                        <TextBlock x:Name="GameWarningText" Foreground="{StaticResource WarnBrush}" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <StackPanel x:Name="GameEditor">
+                        <TextBlock Text="Presets" Style="{StaticResource SectionTitle}"/>
+                        <ItemsControl x:Name="GamePresetList" Margin="0,0,0,4">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding}" Margin="0,0,8,6" Click="GamePreset_Click"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="Settings" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource Card}">
+                            <ItemsControl x:Name="GameSettingList" ItemTemplateSelector="{StaticResource GameSettingSelector}"/>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Button Content="Save to game" Style="{StaticResource PrimaryButton}" Click="SaveGame_Click"/>
+                            <Button Content="Reload from file" Click="ReloadGame_Click"/>
+                            <Button Content="Restore original settings" Click="RestoreGame_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Text="Windows tweaks for this game" Style="{StaticResource SectionTitle}" Margin="0,18,0,6"/>
+                    <ItemsControl x:Name="GameTweakList" ItemTemplate="{StaticResource TweakCard}"/>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <ToggleButton x:Name="GameBoostSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="GameBoostSwitch_Click"/>
+                            <StackPanel>
+                                <TextBlock Text="Game Boost while playing" FontWeight="SemiBold"/>
+                                <TextBlock Text="Raises this game's priority and lowers background apps while it runs (Game Boost must be on). Also lets the NVIDIA performance tweak cover this game."
+                                           Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- My profiles: save and switch between your own setups -->
+            <ScrollViewer x:Name="ProfilesPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="24,16,24,20">
+                    <TextBlock Text="My profiles" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Save your current setup under a name and switch back to it any time. Loading a profile shows what will change first, then turns tweaks on and off to match (using SpudBoost's normal undo) and puts back the saved game settings and crosshairs."/>
+                    <TextBlock Text="Save current setup" Style="{StaticResource SectionTitle}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <TextBlock Text="Name" VerticalAlignment="Center" Width="60"/>
+                                <TextBox x:Name="NewProfileName" Width="240" VerticalContentAlignment="Center"/>
+                                <Button Content="Save profile" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" Click="SaveProfile_Click"/>
+                            </StackPanel>
+                            <WrapPanel>
+                                <CheckBox x:Name="ProfileTweaksBox" Content="Tweaks" IsChecked="True" Margin="0,0,16,0"/>
+                                <CheckBox x:Name="ProfileFortniteBox" Content="Fortnite settings" IsChecked="True" Margin="0,0,16,0"/>
+                                <CheckBox x:Name="ProfileCrosshairBox" Content="Crosshairs" IsChecked="True" Margin="0,0,16,0"/>
+                                <CheckBox x:Name="ProfileGamesBox" Content="Roblox, Minecraft and CS2 settings" IsChecked="True"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="Saved profiles" Style="{StaticResource SectionTitle}" Margin="0,14,0,6"/>
+                    <TextBlock x:Name="NoProfilesText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                               Text="No profiles yet. Set things up the way you like, give it a name above and click Save profile."/>
+                    <ItemsControl x:Name="ProfileList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="14,8">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="Load" Style="{StaticResource PrimaryButton}" Click="LoadProfile_Click"/>
+                                            <Button Content="Update" Click="UpdateProfile_Click" ToolTip="Replace this profile with your current setup"/>
+                                            <Button Content="Delete" Margin="0" Click="DeleteProfile_Click"/>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                            <TextBlock Text="{Binding Summary}" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </DockPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
