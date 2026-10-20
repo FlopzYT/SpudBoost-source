@@ -65,7 +65,7 @@ public partial class MainWindow : Window
         AmdPotatoCard.Visibility = HasAmdGpu() ? Visibility.Visible : Visibility.Collapsed;
         _dns = _networkTweaks.OfType<DnsTweak>().Single();
         InitTweakList();
-        PageHeading.Text = "⚡  Tweaks";
+        PageHeading.Text = "🏠  Home";
         NetworkList.ItemsSource = _networkTweaks;
 
         _booster = new GameBooster(_settings);
@@ -108,6 +108,7 @@ public partial class MainWindow : Window
         InitAccent();
         InitPages();
         InitSessions();
+        InitHome();
         InitPresets();
         InitWhatsNew();
 

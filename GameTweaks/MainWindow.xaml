@@ -5,7 +5,11 @@
         Title="SpudBoost" Icon="app.ico" Height="760" Width="1120" MinHeight="560" MinWidth="860"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
-        FontFamily="Segoe UI" FontSize="13">
+        FontFamily="Segoe UI" FontSize="13" StateChanged="Window_StateChanged">
+    <!-- Dark custom frame instead of the white Windows title bar. The thin glass edge keeps Windows' shadow and rounded corners. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="46" ResizeBorderThickness="6" GlassFrameThickness="0,0,0,1" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
     <Window.Resources>
         <!-- One tweak row: name, badges, description, switch -->
         <DataTemplate x:Key="TweakCard">
@@ -84,6 +88,72 @@
             </games:GameSettingTemplateSelector.Choice>
         </games:GameSettingTemplateSelector>
 
+        <!-- A game as a cover-art tile (Library and Home): name over the art, Boost & Play underneath -->
+        <DataTemplate x:Key="GameTile">
+            <Border x:Name="Tile" Width="150" Margin="0,0,12,12" CornerRadius="14" Background="{StaticResource CardBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="TileScale"/>
+                </Border.RenderTransform>
+                <StackPanel>
+                    <Grid Height="200">
+                        <Grid.Clip>
+                            <RectangleGeometry Rect="0,0,148,200" RadiusX="13" RadiusY="13"/>
+                        </Grid.Clip>
+                        <Rectangle Fill="#10131C"/>
+                        <TextBlock Text="{Binding Initial}" FontSize="48" FontWeight="Bold" Foreground="#2C3346"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Image x:Name="Cover" Source="{Binding Image}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <!-- Fade to dark at the bottom so the name is readable on any cover -->
+                        <Rectangle VerticalAlignment="Bottom" Height="90">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#00000000" Offset="0"/>
+                                    <GradientStop Color="#E6080A10" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <StackPanel VerticalAlignment="Bottom" Margin="10,0,10,8">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                            <TextBlock Text="{Binding Source}" FontSize="11" Foreground="#B5BCCB"/>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Margin="8">
+                        <Button Content="🚀 Boost &amp; Play" Style="{StaticResource PrimaryButton}" Margin="0" HorizontalAlignment="Stretch" Click="BoostPlay_Click"/>
+                        <Button Content="Play" Margin="0,5,0,0" HorizontalAlignment="Stretch" Click="PlayOnly_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <!-- Icons (not cover art) look better small and centred -->
+                <DataTrigger Binding="{Binding CoverPath}" Value="{x:Null}">
+                    <Setter TargetName="Cover" Property="Width" Value="56"/>
+                    <Setter TargetName="Cover" Property="Height" Value="56"/>
+                    <Setter TargetName="Cover" Property="Stretch" Value="Uniform"/>
+                    <Setter TargetName="Cover" Property="Margin" Value="0,0,0,30"/>
+                </DataTrigger>
+                <Trigger SourceName="Tile" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="TileScale" Storyboard.TargetProperty="ScaleX" To="1.03" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetName="TileScale" Storyboard.TargetProperty="ScaleY" To="1.03" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="TileScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2"/>
+                                <DoubleAnimation Storyboard.TargetName="TileScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
         <!-- A preset as a clickable card (Tweaks page and welcome screen) -->
         <DataTemplate x:Key="PresetCard">
             <Button Click="Preset_Click" Margin="0,0,8,8" Padding="0" Cursor="Hand" HorizontalContentAlignment="Stretch">
@@ -129,9 +199,9 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Grid>
+    <Grid x:Name="RootGrid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -141,10 +211,15 @@
         </Grid.RowDefinitions>
 
         <!-- Top bar: compact status chips (admin, restart needed, update) -->
-        <Border Grid.Column="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,8">
+        <Border Grid.Column="1" Height="46" Padding="20,0,0,0">
             <DockPanel LastChildFill="False">
                 <TextBlock x:Name="PageHeading" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Style="{StaticResource ChromeButton}" Content="&#xE921;" ToolTip="Minimise" Click="MinimizeWindow_Click"/>
+                    <Button x:Name="MaximizeButton" Style="{StaticResource ChromeButton}" Content="&#xE922;" ToolTip="Maximise" Click="MaximizeWindow_Click"/>
+                    <Button Style="{StaticResource ChromeButton}" Content="&#xE8BB;" Tag="close" ToolTip="Close" Click="CloseWindow_Click"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0" WindowChrome.IsHitTestVisibleInChrome="True">
                     <Border x:Name="UpdateCard" Visibility="Collapsed" CornerRadius="14" Padding="12,3,4,3" Margin="6,0,0,0"
                             Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
                             ToolTip="{Binding Text, ElementName=UpdateCardText}">
@@ -186,10 +261,11 @@
                         <TextBlock Text="Potato PC? Boost it." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
                     </StackPanel>
                 </StackPanel>
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer VerticalScrollBarVisibility="Hidden">
                 <StackPanel x:Name="NavList" Margin="0,0,0,8">
-                    <TextBlock Text="OPTIMIZE" Style="{StaticResource NavGroup}" Margin="26,0,0,4"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="⚡  Tweaks" Tag="TweaksPage" IsChecked="True" Checked="Nav_Checked" GroupName="Nav"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🏠  Home" Tag="HomePage" IsChecked="True" Checked="Nav_Checked" GroupName="Nav"/>
+                    <TextBlock Text="OPTIMIZE" Style="{StaticResource NavGroup}"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="⚡  Tweaks" Tag="TweaksPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🎮  Game Boost" Tag="BoostPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🌐  Network" Tag="NetworkPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🚀  Startup apps" Tag="StartupPage" Checked="Nav_Checked" GroupName="Nav"/>
@@ -218,29 +294,165 @@
         <!-- Pages -->
         <Grid Grid.Column="1" Grid.Row="1" x:Name="Pages">
 
+            <!-- Home: score, one big Boost button, quick switches and your games -->
+            <ScrollViewer x:Name="HomePage" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="24,4,24,20">
+                    <Border CornerRadius="18" Background="{DynamicResource HeroBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            Padding="28,24" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                                <TextBlock x:Name="HomeGreeting" Text="WELCOME BACK" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock x:Name="HomeHeadline" Text="Let's boost this PC" FontSize="28" FontWeight="Bold" Margin="0,2,0,4" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="HomeSubline" FontSize="13" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap"
+                                           Text="One click turns on the recommended tweaks and Game Boost. Everything can be undone."/>
+                                <!-- Spud Score -->
+                                <DockPanel Margin="0,18,0,0">
+                                    <Grid DockPanel.Dock="Left" Width="74" Height="74" Margin="0,0,16,0">
+                                        <Ellipse Stroke="#262D40" StrokeThickness="7"/>
+                                        <Path x:Name="ScoreArc" Stroke="{DynamicResource AccentGradientBrush}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                        <TextBlock x:Name="ScoreNumber" Text="–" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Button x:Name="ScoreFixButton" DockPanel.Dock="Right" Content="Do it" VerticalAlignment="Center"
+                                            Margin="12,0,0,0" Visibility="Collapsed" Click="ScoreFix_Click"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SubTextBrush}" Text="SPUD SCORE"/>
+                                        <TextBlock x:Name="ScoreRank" FontSize="18" FontWeight="SemiBold" Text="Checking your PC..."/>
+                                        <TextBlock x:Name="ScoreNext" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                            <!-- The big glowing Boost button -->
+                            <Button x:Name="BigBoostButton" Grid.Column="1" Click="BigBoost_Click" Cursor="Hand" VerticalAlignment="Center"
+                                    ToolTip="Turns on the Competitive preset and Game Boost">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid Width="168" Height="168" RenderTransformOrigin="0.5,0.5">
+                                            <Grid.RenderTransform>
+                                                <ScaleTransform x:Name="BoostScale"/>
+                                            </Grid.RenderTransform>
+                                            <Ellipse x:Name="Halo" Margin="-10" Opacity="0.25" Fill="{DynamicResource AccentGradientBrush}">
+                                                <Ellipse.Effect>
+                                                    <BlurEffect Radius="30"/>
+                                                </Ellipse.Effect>
+                                            </Ellipse>
+                                            <Ellipse Fill="{DynamicResource AccentGradientBrush}"/>
+                                            <Ellipse Margin="6" Stroke="#40FFFFFF" StrokeThickness="1"/>
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="BoostScale" Storyboard.TargetProperty="ScaleX" To="1.05" Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="BoostScale" Storyboard.TargetProperty="ScaleY" To="1.05" Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="Halo" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="BoostScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.25"/>
+                                                            <DoubleAnimation Storyboard.TargetName="BoostScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.25"/>
+                                                            <DoubleAnimation Storyboard.TargetName="Halo" Storyboard.TargetProperty="Opacity" To="0.25" Duration="0:0:0.25"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="0.6"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <StackPanel>
+                                    <TextBlock Text="⚡" FontSize="34" HorizontalAlignment="Center" Foreground="#0B0B0B"/>
+                                    <TextBlock x:Name="BigBoostText" Text="BOOST" FontSize="22" FontWeight="Black" HorizontalAlignment="Center" Foreground="#0B0B0B"/>
+                                    <TextBlock x:Name="BigBoostSub" Text="one click" FontSize="11" HorizontalAlignment="Center" Foreground="#3A2A1A"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Quick switches -->
+                    <UniformGrid Columns="3" Margin="0,0,-10,0">
+                        <Border x:Name="HomeBoostTile" Style="{StaticResource Tile}">
+                            <DockPanel>
+                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                                <StackPanel>
+                                    <TextBlock Text="🎮  Game Boost" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border x:Name="HomeCrosshairTile" Style="{StaticResource Tile}">
+                            <DockPanel>
+                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                                <StackPanel>
+                                    <TextBlock Text="🎯  Crosshair" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Custom crosshair in Fortnite" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border x:Name="HomeOverlayTile" Style="{StaticResource Tile}">
+                            <DockPanel>
+                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                                <StackPanel>
+                                    <TextBlock Text="📈  Stats overlay" FontWeight="SemiBold"/>
+                                    <TextBlock Text="GPU temp, CPU, RAM and ping in game" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- At a glance -->
+                    <UniformGrid Columns="3" Margin="0,0,-10,0">
+                        <Border Style="{StaticResource Tile}" Cursor="Hand" MouseLeftButtonUp="HomeTweaks_Click">
+                            <StackPanel>
+                                <TextBlock Text="TWEAKS ON" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock x:Name="HomeTweaksOn" Text="–" Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Tile}" Cursor="Hand" MouseLeftButtonUp="HomeMonitor_Click">
+                            <StackPanel>
+                                <TextBlock Text="PLAYED THIS WEEK" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock x:Name="HomePlayWeek" Text="0 min" Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Tile}" Cursor="Hand" MouseLeftButtonUp="HomeLibrary_Click">
+                            <StackPanel>
+                                <TextBlock Text="GAMES INSTALLED" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock x:Name="HomeGameCount" Text="–" Style="{StaticResource StatValue}"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- Your games -->
+                    <DockPanel Margin="0,8,0,8">
+                        <Button DockPanel.Dock="Right" Content="See all" Margin="0" Click="HomeLibrary_Click"/>
+                        <TextBlock Text="Jump back in" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <ItemsControl x:Name="HomeGames" ItemTemplate="{StaticResource GameTile}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
             <!-- System tweaks -->
-            <ScrollViewer x:Name="TweaksPage" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer x:Name="TweaksPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                 <StackPanel Margin="24,16,24,20">
                     <TextBlock Text="System tweaks" Style="{StaticResource PageTitle}"/>
                     <TextBlock Style="{StaticResource PageSubtitle}"
                                Text="One-click Windows optimizations. The original value is saved before each change, so turning a switch off puts it back exactly as it was."/>
-                    <!-- Spud Score: how game-ready this PC is, and the next thing to do -->
-                    <Border Style="{StaticResource Card}" Margin="0,0,0,10" Padding="16,12">
-                        <DockPanel>
-                            <Grid DockPanel.Dock="Left" Width="74" Height="74" Margin="0,0,16,0">
-                                <Ellipse Stroke="{StaticResource BorderBrush}" StrokeThickness="7"/>
-                                <Path x:Name="ScoreArc" Stroke="{DynamicResource AccentBrush}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                <TextBlock x:Name="ScoreNumber" Text="–" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Button x:Name="ScoreFixButton" DockPanel.Dock="Right" Content="Do it" Style="{StaticResource PrimaryButton}" VerticalAlignment="Center"
-                                    Margin="12,0,0,0" Visibility="Collapsed" Click="ScoreFix_Click"/>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock FontSize="12" Foreground="{StaticResource SubTextBrush}" Text="SPUD SCORE"/>
-                                <TextBlock x:Name="ScoreRank" FontSize="18" FontWeight="SemiBold" Text="Checking your PC..."/>
-                                <TextBlock x:Name="ScoreNext" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </DockPanel>
-                    </Border>
                     <!-- Collapsed to one line; click to see the details -->
                     <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed" Margin="0,0,0,10"
                             Cursor="Hand" MouseLeftButtonUp="HealthCard_Click">
@@ -1036,40 +1248,12 @@
                         </Grid>
                     </DockPanel>
                     <TextBlock x:Name="LibraryStatus" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="2,0,0,8" Text="Looking for games..."/>
-                    <ItemsControl x:Name="LibraryList">
+                    <ItemsControl x:Name="LibraryList" ItemTemplate="{StaticResource GameTile}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Style="{StaticResource Card}" Width="150" Padding="8" Margin="0,0,10,10">
-                                    <StackPanel>
-                                        <Border Height="200" CornerRadius="6" Background="#151820" ClipToBounds="True">
-                                            <Grid>
-                                                <TextBlock Text="{Binding Initial}" FontSize="48" FontWeight="Bold" Foreground="#3A4152"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                <Image x:Name="Cover" Source="{Binding Image}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Grid>
-                                        </Border>
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
-                                        <TextBlock Text="{Binding Source}" FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
-                                        <Button Content="🚀 Boost &amp; Play" Style="{StaticResource PrimaryButton}" Margin="0,6,0,0" HorizontalAlignment="Stretch"
-                                                Click="BoostPlay_Click"/>
-                                        <Button Content="Play" Margin="0,4,0,0" HorizontalAlignment="Stretch" Click="PlayOnly_Click"/>
-                                    </StackPanel>
-                                </Border>
-                                <DataTemplate.Triggers>
-                                    <!-- Icons (not cover art) look better small and centred -->
-                                    <DataTrigger Binding="{Binding CoverPath}" Value="{x:Null}">
-                                        <Setter TargetName="Cover" Property="Width" Value="48"/>
-                                        <Setter TargetName="Cover" Property="Height" Value="48"/>
-                                        <Setter TargetName="Cover" Property="Stretch" Value="Uniform"/>
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
             </ScrollViewer>

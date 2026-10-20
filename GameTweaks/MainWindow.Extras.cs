@@ -22,6 +22,7 @@ public partial class MainWindow
         LibraryStatus.Text = "Looking for games...";
         _library = await Task.Run(GameLibrary.Scan);
         FilterLibrary();
+        UpdateHome();
     }
 
     void FilterLibrary()
@@ -112,6 +113,7 @@ public partial class MainWindow
         ScoreFixButton.Visibility = result.NextTweak is { CanToggle: true } || (result.NextTweak == null && !_booster.Enabled)
             ? Visibility.Visible : Visibility.Collapsed;
         AnimateScore(previous ?? 0, result.Score);
+        UpdateHome();
     }
 
     void AnimateScore(int from, int to)
@@ -263,6 +265,20 @@ public partial class MainWindow
         var bg = Color.FromRgb(0x17, 0x1A, 0x22);
         Color Mix(double t) => Color.FromRgb((byte)(bg.R + (color.R - bg.R) * t), (byte)(bg.G + (color.G - bg.G) * t), (byte)(bg.B + (color.B - bg.B) * t));
         resources["AccentDimBrush"] = Frozen(new SolidColorBrush(color == Color.FromRgb(0xFF, 0x7A, 0x1A) ? Color.FromRgb(0x33, 0x24, 0x1A) : Mix(0.2)));
+        resources["AccentColor"] = color;
+
+        // Gradient from a lighter to a slightly deeper shade of the accent, for buttons and the score ring.
+        Color Shade(double t) => t >= 0
+            ? Color.FromRgb((byte)(color.R + (255 - color.R) * t), (byte)(color.G + (255 - color.G) * t), (byte)(color.B + (255 - color.B) * t))
+            : Color.FromRgb((byte)(color.R * (1 + t)), (byte)(color.G * (1 + t)), (byte)(color.B * (1 + t)));
+        var gradient = new LinearGradientBrush(Shade(0.25), Shade(-0.12), new Point(0, 0), new Point(1, 1));
+        gradient.Freeze();
+        resources["AccentGradientBrush"] = gradient;
+
+        // Home hero card: a faint wash of the accent fading into the card colour.
+        var hero = new LinearGradientBrush([new GradientStop(Mix(0.16), 0), new GradientStop(Color.FromRgb(0x14, 0x18, 0x24), 0.7)], new Point(0, 0), new Point(1, 1));
+        hero.Freeze();
+        resources["HeroBrush"] = hero;
     }
 
     static SolidColorBrush Frozen(SolidColorBrush b)
