@@ -198,12 +198,12 @@
 
                     <TextBlock Text="GAMES" Style="{StaticResource NavGroup}"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🥔  Fortnite" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
-                    <RadioButton Style="{StaticResource NavButton}" Content="🎯  Crosshair" Tag="CrosshairPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🧱  Roblox" Tag="Game:roblox" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⛏  Minecraft" Tag="Game:minecraft" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🔫  CS2" Tag="Game:cs2" Checked="Nav_Checked" GroupName="Nav"/>
 
                     <TextBlock Text="TOOLS" Style="{StaticResource NavGroup}"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🎯  Crosshair" Tag="CrosshairPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📊  FPS Benchmark" Tag="BenchmarkPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📈  Monitor" Tag="MonitorPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="📁  My profiles" Tag="ProfilesPage" Checked="Nav_Checked" GroupName="Nav"/>
