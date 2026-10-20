@@ -19,7 +19,7 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"/>
                             <Border Style="{StaticResource Badge}" Visibility="{Binding RequiresAdmin, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Admin" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
+                                <TextBlock Text="Admin" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
                             </Border>
                             <Border Style="{StaticResource Badge}" Visibility="{Binding PendingNote, Converter={x:Static local:NotNullToVisibility.Instance}}">
                                 <TextBlock Text="{Binding PendingNote}" FontSize="11" Foreground="{StaticResource WarnBrush}"/>
@@ -50,7 +50,7 @@
                         </StackPanel>
                         <Slider Grid.Column="1" Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Number, Mode=TwoWay}"
                                 TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="2" Text="{Binding DisplayValue}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding DisplayValue}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}"/>
                     </Grid>
                 </DataTemplate>
             </games:GameSettingTemplateSelector.Slider>
@@ -98,7 +98,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                 <Trigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
@@ -146,10 +146,10 @@
                 <TextBlock x:Name="PageHeading" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Border x:Name="UpdateCard" Visibility="Collapsed" CornerRadius="14" Padding="12,3,4,3" Margin="6,0,0,0"
-                            Background="{StaticResource AccentDimBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="1"
+                            Background="{DynamicResource AccentDimBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
                             ToolTip="{Binding Text, ElementName=UpdateCardText}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="UpdateTitle" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="UpdateTitle" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                             <TextBlock x:Name="UpdateCardText" FontSize="11" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center" Margin="8,0,0,0" MaxWidth="220"
                                        TextTrimming="CharacterEllipsis" Text="Keeps all your settings."/>
                             <Button x:Name="UpdateNowButton" Content="Update now" Padding="10,2" Margin="8,0,0,0" FontSize="12" Click="UpdateNow_Click" Style="{StaticResource PrimaryButton}"/>
@@ -181,7 +181,7 @@
                     <Image Source="logo.png" Width="34" Height="34" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,10,0"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock FontSize="19" FontWeight="Bold">
-                            <Run Text="Spud" Foreground="{StaticResource TextBrush}"/><Run Text="Boost" Foreground="{StaticResource AccentBrush}"/>
+                            <Run Text="Spud" Foreground="{StaticResource TextBrush}"/><Run Text="Boost" Foreground="{DynamicResource AccentBrush}"/>
                         </TextBlock>
                         <TextBlock Text="Potato PC? Boost it." Foreground="{StaticResource SubTextBrush}" FontSize="11"/>
                     </StackPanel>
@@ -197,6 +197,7 @@
                     <RadioButton Style="{StaticResource NavButton}" Content="🗑  Debloater" Tag="DebloatPage" Checked="Nav_Checked" GroupName="Nav"/>
 
                     <TextBlock Text="GAMES" Style="{StaticResource NavGroup}"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="🕹  Library" Tag="LibraryPage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🥔  Fortnite" Tag="FortnitePage" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="🧱  Roblox" Tag="Game:roblox" Checked="Nav_Checked" GroupName="Nav"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="⛏  Minecraft" Tag="Game:minecraft" Checked="Nav_Checked" GroupName="Nav"/>
@@ -223,6 +224,23 @@
                     <TextBlock Text="System tweaks" Style="{StaticResource PageTitle}"/>
                     <TextBlock Style="{StaticResource PageSubtitle}"
                                Text="One-click Windows optimizations. The original value is saved before each change, so turning a switch off puts it back exactly as it was."/>
+                    <!-- Spud Score: how game-ready this PC is, and the next thing to do -->
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,10" Padding="16,12">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Left" Width="74" Height="74" Margin="0,0,16,0">
+                                <Ellipse Stroke="{StaticResource BorderBrush}" StrokeThickness="7"/>
+                                <Path x:Name="ScoreArc" Stroke="{DynamicResource AccentBrush}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <TextBlock x:Name="ScoreNumber" Text="–" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Button x:Name="ScoreFixButton" DockPanel.Dock="Right" Content="Do it" Style="{StaticResource PrimaryButton}" VerticalAlignment="Center"
+                                    Margin="12,0,0,0" Visibility="Collapsed" Click="ScoreFix_Click"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock FontSize="12" Foreground="{StaticResource SubTextBrush}" Text="SPUD SCORE"/>
+                                <TextBlock x:Name="ScoreRank" FontSize="18" FontWeight="SemiBold" Text="Checking your PC..."/>
+                                <TextBlock x:Name="ScoreNext" FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
                     <!-- Collapsed to one line; click to see the details -->
                     <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed" Margin="0,0,0,10"
                             Cursor="Hand" MouseLeftButtonUp="HealthCard_Click">
@@ -253,7 +271,9 @@
                     </ItemsControl>
                     <DockPanel Margin="0,0,0,8">
                         <Button DockPanel.Dock="Left" Content="Apply all" Style="{StaticResource PrimaryButton}" Click="ApplyAllSystem_Click"
-                                ToolTip="Turns on every tweak except ones that need extra confirmation, like Memory Integrity."/>
+                                ToolTip="Turns on every tweak except Privacy ones and ones that need extra confirmation, like Memory Integrity."/>
+                        <Button DockPanel.Dock="Left" Content="🔒 Privacy pack" Click="ApplyPrivacy_Click"
+                                ToolTip="Turns on every Privacy tweak except location (which weather and maps need)."/>
                         <!-- Search: filters the list as you type -->
                         <Grid Margin="6,0,0,0">
                             <TextBox x:Name="TweakSearchBox" VerticalContentAlignment="Center" Padding="28,5,8,5" TextChanged="TweakSearch_TextChanged"/>
@@ -363,7 +383,7 @@
                                                     <TextBlock Text="Heavy" FontSize="11" Foreground="{StaticResource WarnBrush}"/>
                                                 </Border>
                                                 <Border Style="{StaticResource Badge}" Visibility="{Binding Protected, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="Needed by Windows" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
+                                                    <TextBlock Text="Needed by Windows" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
                                                 </Border>
                                                 <TextBlock Text="{Binding Scope, StringFormat=  ·  {0}}" Foreground="{StaticResource SubTextBrush}" FontSize="12" VerticalAlignment="Center"/>
                                             </StackPanel>
@@ -414,7 +434,7 @@
                                         </Grid>
                                         <DataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding Best}" Value="True">
-                                                <Setter TargetName="RegionText" Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                                <Setter TargetName="RegionText" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                                                 <Setter TargetName="RegionText" Property="Text" Value="{Binding Region, StringFormat=★ {0}}"/>
                                             </DataTrigger>
                                         </DataTemplate.Triggers>
@@ -464,9 +484,9 @@
 
                                 <!-- Shown when Legacy Performance is picked: it also needs launch options in the Epic launcher -->
                                 <Border Grid.Row="6" Grid.ColumnSpan="3" Margin="0,10,0,0" Padding="14,10" CornerRadius="8"
-                                        Background="{StaticResource AccentDimBrush}" Visibility="{Binding IsLegacyPerformance, Converter={StaticResource BoolToVis}}">
+                                        Background="{DynamicResource AccentDimBrush}" Visibility="{Binding IsLegacyPerformance, Converter={StaticResource BoolToVis}}">
                                     <StackPanel>
-                                        <TextBlock Text="Legacy Performance: one more step" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                                        <TextBlock Text="Legacy Performance: one more step" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                                         <TextBlock TextWrapping="Wrap" Margin="0,4,0,8" Foreground="{StaticResource TextBrush}"
                                                    Text="This is Fortnite's old, flattest renderer (DirectX 11 + mobile graphics). Epic has marked it deprecated and may have removed it; if so, Fortnite just uses normal Performance mode. To force it, open the Epic Games Launcher → your profile picture → Settings → scroll to Fortnite → tick Additional Command Line Arguments and paste:"/>
                                         <StackPanel Orientation="Horizontal">
@@ -531,7 +551,7 @@
                                             <Slider Grid.Column="1" Minimum="0" Maximum="3" TickFrequency="1" IsSnapToTickEnabled="True"
                                                     TickPlacement="BottomRight" Value="{Binding Value, Mode=TwoWay}" VerticalAlignment="Center"/>
                                             <TextBlock Grid.Column="2" Text="{Binding LevelName}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                       Foreground="{StaticResource AccentBrush}"/>
+                                                       Foreground="{DynamicResource AccentBrush}"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -594,11 +614,11 @@
                                                Text="AMD's driver has no texture-blur (LOD bias) setting like NVIDIA's, and its per-game settings can only be changed safely in AMD Software. These settings get you closest to the flat look, and they're all allowed with anti-cheat."/>
                                     <TextBlock Text="AMD Software: Adrenalin → Gaming → Games → Fortnite" FontWeight="SemiBold"/>
                                     <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                        • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                        • Anisotropic Filtering: <Run Text="Use application settings" Foreground="{StaticResource AccentBrush}"/> (turning it off smears hills and the ground),  Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                        • Tessellation Mode: <Run Text="Override application settings" Foreground="{StaticResource AccentBrush}"/>,  Maximum Tessellation Level: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                        • Radeon Image Sharpening: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/> (keeps edges soft and flat)<LineBreak/>
-                                        • Optional: Radeon Super Resolution <Run Text="On" Foreground="{StaticResource AccentBrush}"/>, then pick a lower resolution in Fortnite for an even blockier look and more FPS
+                                        • Texture Filtering Quality: <Run Text="Performance" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
+                                        • Anisotropic Filtering: <Run Text="Use application settings" Foreground="{DynamicResource AccentBrush}"/> (turning it off smears hills and the ground),  Surface Format Optimization: <Run Text="On" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
+                                        • Tessellation Mode: <Run Text="Override application settings" Foreground="{DynamicResource AccentBrush}"/>,  Maximum Tessellation Level: <Run Text="Off" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
+                                        • Radeon Image Sharpening: <Run Text="Off" Foreground="{DynamicResource AccentBrush}"/> (keeps edges soft and flat)<LineBreak/>
+                                        • Optional: Radeon Super Resolution <Run Text="On" Foreground="{DynamicResource AccentBrush}"/>, then pick a lower resolution in Fortnite for an even blockier look and more FPS
                                     </TextBlock>
                                     <Button Content="Open AMD Software" HorizontalAlignment="Left" Click="OpenAmd_Click"/>
                                 </StackPanel>
@@ -612,14 +632,14 @@
                                            Text="Your graphics driver can lower texture quality further. These settings are allowed and safe with anti-cheat. Set them for Fortnite only (FortniteClient-Win64-Shipping.exe), not globally."/>
                                 <TextBlock Text="NVIDIA Control Panel → Manage 3D settings → Program settings" FontWeight="SemiBold"/>
                                 <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                    • Texture filtering - Quality: <Run Text="High performance" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                    • Anisotropic filtering: <Run Text="Application-controlled" Foreground="{StaticResource AccentBrush}"/> (turning it off smears hills and the ground),  Antialiasing - FXAA: <Run Text="Off" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                    • Low latency mode: <Run Text="Ultra" Foreground="{StaticResource AccentBrush}"/>,  Power management: <Run Text="Prefer maximum performance" Foreground="{StaticResource AccentBrush}"/>
+                                    • Texture filtering - Quality: <Run Text="High performance" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
+                                    • Anisotropic filtering: <Run Text="Application-controlled" Foreground="{DynamicResource AccentBrush}"/> (turning it off smears hills and the ground),  Antialiasing - FXAA: <Run Text="Off" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
+                                    • Low latency mode: <Run Text="Ultra" Foreground="{DynamicResource AccentBrush}"/>,  Power management: <Run Text="Prefer maximum performance" Foreground="{DynamicResource AccentBrush}"/>
                                 </TextBlock>
                                 <TextBlock Text="AMD Software: Adrenalin → Gaming → Fortnite" FontWeight="SemiBold"/>
                                 <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                    • Texture Filtering Quality: <Run Text="Performance" Foreground="{StaticResource AccentBrush}"/>,  Anisotropic Filtering: <Run Text="Use application settings" Foreground="{StaticResource AccentBrush}"/><LineBreak/>
-                                    • Surface Format Optimization: <Run Text="On" Foreground="{StaticResource AccentBrush}"/>,  Radeon Anti-Lag: <Run Text="On" Foreground="{StaticResource AccentBrush}"/>
+                                    • Texture Filtering Quality: <Run Text="Performance" Foreground="{DynamicResource AccentBrush}"/>,  Anisotropic Filtering: <Run Text="Use application settings" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
+                                    • Surface Format Optimization: <Run Text="On" Foreground="{DynamicResource AccentBrush}"/>,  Radeon Anti-Lag: <Run Text="On" Foreground="{DynamicResource AccentBrush}"/>
                                 </TextBlock>
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="Open NVIDIA Control Panel" Click="OpenNvidia_Click"/>
@@ -887,7 +907,7 @@
                                                        Visibility="{Binding Comparison, Converter={x:Static local:NotNullToVisibility.Instance}}"/>
                                         </StackPanel>
                                         <TextBlock Grid.Column="1" Text="{Binding Summary}" FontSize="14" FontWeight="SemiBold"
-                                                   Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -1000,6 +1020,60 @@
                 </StackPanel>
             </ScrollViewer>
 
+            <!-- Library: installed games with Boost & Play -->
+            <ScrollViewer x:Name="LibraryPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+                <StackPanel Margin="24,16,24,20">
+                    <TextBlock Text="Library" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Style="{StaticResource PageSubtitle}"
+                               Text="Your installed Steam, Epic Games and Minecraft games in one place. Boost &amp; Play switches on Game Boost, closes the apps on your close list, starts the game through its own launcher, and teaches Game Boost the game's process so it's boosted every time."/>
+                    <DockPanel Margin="0,0,0,10">
+                        <Button DockPanel.Dock="Right" Content="Refresh" Margin="0" Click="LibraryRefresh_Click"/>
+                        <Grid>
+                            <TextBox x:Name="LibrarySearchBox" VerticalContentAlignment="Center" Padding="28,5,8,5" Margin="0,0,8,0" TextChanged="LibrarySearch_TextChanged"/>
+                            <TextBlock Text="🔍" Margin="9,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="{StaticResource SubTextBrush}"/>
+                            <TextBlock x:Name="LibrarySearchHint" Text="Search your games" Margin="29,0,0,0" VerticalAlignment="Center"
+                                       IsHitTestVisible="False" Foreground="#5D6577" FontSize="12"/>
+                        </Grid>
+                    </DockPanel>
+                    <TextBlock x:Name="LibraryStatus" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="2,0,0,8" Text="Looking for games..."/>
+                    <ItemsControl x:Name="LibraryList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Width="150" Padding="8" Margin="0,0,10,10">
+                                    <StackPanel>
+                                        <Border Height="200" CornerRadius="6" Background="#151820" ClipToBounds="True">
+                                            <Grid>
+                                                <TextBlock Text="{Binding Initial}" FontSize="48" FontWeight="Bold" Foreground="#3A4152"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Image x:Name="Cover" Source="{Binding Image}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                                        <TextBlock Text="{Binding Source}" FontSize="11" Foreground="{StaticResource SubTextBrush}"/>
+                                        <Button Content="🚀 Boost &amp; Play" Style="{StaticResource PrimaryButton}" Margin="0,6,0,0" HorizontalAlignment="Stretch"
+                                                Click="BoostPlay_Click"/>
+                                        <Button Content="Play" Margin="0,4,0,0" HorizontalAlignment="Stretch" Click="PlayOnly_Click"/>
+                                    </StackPanel>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <!-- Icons (not cover art) look better small and centred -->
+                                    <DataTrigger Binding="{Binding CoverPath}" Value="{x:Null}">
+                                        <Setter TargetName="Cover" Property="Width" Value="48"/>
+                                        <Setter TargetName="Cover" Property="Height" Value="48"/>
+                                        <Setter TargetName="Cover" Property="Stretch" Value="Uniform"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
             <!-- Cleaner -->
             <ScrollViewer x:Name="CleanerPage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                 <StackPanel Margin="24,16,24,20">
@@ -1028,7 +1102,7 @@
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
                                             <TextBlock Text="{Binding Description}" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap"/>
                                         </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{Binding SizeText}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"
+                                        <TextBlock Grid.Column="2" Text="{Binding SizeText}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                                                    VerticalAlignment="Center" Margin="16,0,0,0"/>
                                     </Grid>
                                 </Border>
@@ -1144,6 +1218,59 @@
                         <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubTextBrush}" LineHeight="20"
                                    Text="How to read it: if GPU usage stays near 95–100% in game, your graphics card is the limit, so lower graphics settings help. If GPU usage is well below that while one CPU core is busy, your CPU is the limit: graphics settings won't help much, but closing background apps, XMP and the CPU tweaks will. GPU temperatures above about 85 °C can mean dust or poor airflow."/>
                     </Border>
+
+                    <!-- Play sessions, recorded automatically for games in the Game Boost list -->
+                    <DockPanel Margin="0,14,0,6">
+                        <Button DockPanel.Dock="Right" Content="Clear history" Margin="0" Click="ClearSessions_Click"/>
+                        <TextBlock Text="Play sessions" Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <UniformGrid Columns="3">
+                        <Border Style="{StaticResource Card}" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="Today" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock x:Name="PlayToday" Text="0 min" Style="{StaticResource StatValue}" FontSize="24"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="Last 7 days" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock x:Name="PlayWeek" Text="0 min" Style="{StaticResource StatValue}" FontSize="24"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <StackPanel>
+                                <TextBlock Text="Most played (7 days)" Foreground="{StaticResource SubTextBrush}"/>
+                                <TextBlock x:Name="PlayTop" Text="–" Style="{StaticResource StatValue}" FontSize="24" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                    <TextBlock x:Name="SessionNow" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="2,0,0,6" Visibility="Collapsed"/>
+                    <TextBlock x:Name="NoSessionsText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="2,0,0,6"
+                               Text="No sessions yet. SpudBoost records how long you play each game in your Game Boost list (and how hot your GPU gets) while it's running. If your GPU passes 85 °C you'll get a warning."/>
+                    <ItemsControl x:Name="SessionList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Padding="14,7" Margin="0,0,0,6">
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Length}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="Hot" DockPanel.Dock="Right" Text="🔥 ran hot " Foreground="{StaticResource WarnBrush}" VerticalAlignment="Center"
+                                                   Margin="0,0,10,0" Visibility="Collapsed"/>
+                                        <StackPanel>
+                                            <TextBlock>
+                                                <Run Text="{Binding Game, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="  ·  " Foreground="{StaticResource SubTextBrush}"/><Run Text="{Binding When, Mode=OneWay}" Foreground="{StaticResource SubTextBrush}"/>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Details}" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding RanHot}" Value="True">
+                                        <Setter TargetName="Hot" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </ScrollViewer>
 
@@ -1161,6 +1288,27 @@
                             <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,8"
                                        Text="Starts without administrator rights. Game Boost and the crosshair work without them."/>
                             <CheckBox x:Name="AutoRestorePointBox" Content="Create a Windows restore point before the first tweak" Click="AutoRestorePointBox_Click"/>
+                            <CheckBox x:Name="HeatAlertBox" Content="Warn me when my GPU gets hotter than 85 °C while gaming" Margin="0,8,0,0" Click="HeatAlertBox_Click"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Accent colour" FontWeight="SemiBold"/>
+                            <TextBlock Text="Make SpudBoost yours. Changes the colour of switches, buttons and highlights."
+                                       Foreground="{StaticResource SubTextBrush}" FontSize="12" Margin="0,2,0,8"/>
+                            <ItemsControl x:Name="AccentList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Tag="{Binding Hex}" ToolTip="{Binding Name}" Width="30" Height="30" Padding="0" Margin="0,0,8,0" Click="Accent_Click"
+                                                Background="{Binding Brush}" BorderBrush="{Binding Border}" BorderThickness="2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource Card}">
@@ -1209,7 +1357,7 @@
                                                Foreground="{StaticResource SubTextBrush}"/>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsHeading}" Value="True">
-                                            <Setter TargetName="Line" Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                            <Setter TargetName="Line" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                                             <Setter TargetName="Line" Property="FontWeight" Value="SemiBold"/>
                                             <Setter TargetName="Line" Property="FontSize" Value="14"/>
                                             <Setter TargetName="Line" Property="Margin" Value="0,10,0,2"/>
@@ -1237,7 +1385,7 @@
                         <Image Source="logo.png" Width="40" Height="40" Margin="0,0,12,0"/>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock FontSize="22" FontWeight="Bold">
-                                <Run Text="Welcome to " Foreground="{StaticResource TextBrush}"/><Run Text="Spud" Foreground="{StaticResource TextBrush}"/><Run Text="Boost" Foreground="{StaticResource AccentBrush}"/>
+                                <Run Text="Welcome to " Foreground="{StaticResource TextBrush}"/><Run Text="Spud" Foreground="{StaticResource TextBrush}"/><Run Text="Boost" Foreground="{DynamicResource AccentBrush}"/>
                             </TextBlock>
                             <TextBlock Text="Pick a starting point. You can change or undo everything later." Foreground="{StaticResource SubTextBrush}"/>
                         </StackPanel>

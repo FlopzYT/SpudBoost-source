@@ -38,6 +38,9 @@ public sealed class AppSettings
 
     /// <summary>Create a Windows restore point before the first tweak is applied.</summary>
     public bool AutoRestorePoint { get; set; } = true;
+    /// <summary>Accent colour as #RRGGBB (SpudBoost orange by default).</summary>
+    public string AccentColor { get; set; } = "#FF7A1A";
+    public bool GpuHeatAlerts { get; set; } = true;
 
     /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
     public string? LastNotifiedUpdate { get; set; }

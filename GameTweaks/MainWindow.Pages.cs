@@ -194,6 +194,8 @@ public partial class MainWindow
 
         if (page == "CleanerPage" && !_cleanerScanned) await ScanCleanerAsync();
         if (page == "DebloatPage" && !_debloatLoaded) await LoadDebloatAsync();
+        if (page == "LibraryPage" && !_libraryLoaded) await LoadLibraryAsync();
+        if (page == "MonitorPage") RefreshSessions();
     }
 
     // ---- Cleaner ----

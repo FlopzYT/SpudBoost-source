@@ -16,7 +16,7 @@ public static class TweakCatalog
     static RegValue LmS(string key, string name, string value) => new(RegistryHive.LocalMachine, key, name, RegistryValueKind.String, value);
 
     /// <summary>Tweaks page sections, in display order.</summary>
-    public static readonly string[] Categories = ["Performance", "Gaming", "Mouse & keyboard", "Windows clutter", "Other"];
+    public static readonly string[] Categories = ["Performance", "Gaming", "Mouse & keyboard", "Windows clutter", "Privacy", "Other"];
 
     static readonly Dictionary<string, string> CategoryOf = new()
     {
@@ -27,6 +27,15 @@ public static class TweakCatalog
         ["mouse-accel"] = "Mouse & keyboard", ["sticky-keys"] = "Mouse & keyboard",
         ["transparency"] = "Windows clutter", ["visual-effects"] = "Windows clutter", ["background-apps"] = "Windows clutter",
         ["windows-tips"] = "Windows clutter", ["search-indexing"] = "Windows clutter", ["store-auto-updates"] = "Windows clutter",
+        ["core-parking"] = "Performance", ["usb-suspend"] = "Performance", ["timer-resolution"] = "Performance", ["sysmain"] = "Performance",
+        ["auto-maintenance"] = "Performance", ["fast-startup"] = "Performance",
+        ["mpo-off"] = "Gaming", ["fullscreen-optimizations-global"] = "Gaming",
+        ["keyboard-repeat"] = "Mouse & keyboard",
+        ["menu-delay"] = "Windows clutter", ["startup-delay"] = "Windows clutter", ["edge-background"] = "Windows clutter",
+        ["telemetry"] = "Privacy", ["diagtrack"] = "Privacy", ["advertising-id"] = "Privacy", ["tailored-experiences"] = "Privacy",
+        ["promo-apps"] = "Privacy", ["activity-history"] = "Privacy", ["bing-search"] = "Privacy", ["typing-data"] = "Privacy",
+        ["online-speech"] = "Privacy", ["feedback-prompts"] = "Privacy", ["app-tracking"] = "Privacy", ["copilot"] = "Privacy",
+        ["recall"] = "Privacy", ["location"] = "Privacy",
     };
 
     /// <summary>System tweaks, sorted into their Tweaks page sections.</summary>
@@ -40,6 +49,7 @@ public static class TweakCatalog
     static List<Tweak> SystemUnsorted(Func<IEnumerable<string>> gameProcesses)
     {
         var list = SystemCore();
+        list.AddRange(More());
         if (NvidiaProfileTweak.HasNvidiaGpu)
             list.Add(new NvidiaProfileTweak
             {
@@ -273,6 +283,280 @@ public static class TweakCatalog
             Name = "Disable Xbox Game Bar overlay",
             Description = "Stops the Game Bar overlay loading into games and the Win+G shortcut. Saves a little CPU and memory.",
             Values = [Cu(@"Software\Microsoft\GameBar", "UseNexusForGameBarEnabled", 0)],
+        },
+    ];
+
+    const string ContentDelivery = @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
+    const string DataCollectionPolicy = @"SOFTWARE\Policies\Microsoft\Windows\DataCollection";
+    const string UsbSub = "2a737441-1930-4402-8d77-b2bebba308a3";
+    const string UsbSuspend = "48e6b7a6-50f5-4782-a5d4-53bb8f07e226";
+
+    /// <summary>
+    /// Script for a setting of the active power plan: prints True when its plugged-in value equals <paramref name="wanted"/>.
+    /// Reads the hex values (the last two are plugged in / on battery), so it works in any Windows language.
+    /// </summary>
+    static string PowerCheck(string sub, string setting, int wanted) =>
+        $"$v = [regex]::Matches((powercfg /qh scheme_current {sub} {setting} | Out-String), '0x[0-9a-fA-F]{{8}}'); " +
+        $"$v.Count -ge 2 -and [Convert]::ToInt32($v[$v.Count - 2].Value, 16) -eq {wanted}";
+
+    static string PowerSet(string sub, string setting, string value) =>
+        $"powercfg /setacvalueindex scheme_current {sub} {setting} {value}; if ($LASTEXITCODE) {{ exit 1 }}; powercfg /setactive scheme_current";
+
+    static string ServiceOff(string name) => $"Stop-Service {name} -Force -ErrorAction SilentlyContinue; Set-Service {name} -StartupType Disabled";
+    static string ServiceOn(string name) => $"Set-Service {name} -StartupType Automatic; Start-Service {name} -ErrorAction SilentlyContinue";
+
+    /// <summary>Added in 1.5.0: more performance tweaks and a Privacy section.</summary>
+    static List<Tweak> More() =>
+    [
+        new ScriptTweak
+        {
+            Id = "core-parking",
+            Name = "Keep all CPU cores awake (no core parking)",
+            Description = "Stops Windows putting CPU cores to sleep to save power. Sleeping cores take time to wake, which shows up as stutter and 1% low drops when a game suddenly needs them.",
+            CheckScript = PowerCheck("sub_processor", "CPMINCORES", 100),
+            ApplyScript = PowerSet("sub_processor", "CPMINCORES", "100"),
+            // Windows' own default: 100% on the High/Ultimate performance plans, 10% on Balanced.
+            RevertScript = "$p = powercfg /getactivescheme | Out-String; $d = if ($p -match '8c5e7fda|e9a42b02') { 100 } else { 10 }; " +
+                           "powercfg /setacvalueindex scheme_current sub_processor CPMINCORES $d; powercfg /setactive scheme_current",
+            RequiresAdmin = true,
+        },
+        new ScriptTweak
+        {
+            Id = "usb-suspend",
+            Name = "Disable USB selective suspend",
+            Description = "Stops Windows powering down USB ports to save energy. A sleeping port can make your mouse, keyboard or headset skip or lag for a moment when it wakes.",
+            CheckScript = PowerCheck(UsbSub, UsbSuspend, 0),
+            ApplyScript = PowerSet(UsbSub, UsbSuspend, "0"),
+            RevertScript = PowerSet(UsbSub, UsbSuspend, "1"),
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "timer-resolution",
+            Name = "Precise game timers",
+            Description = "Windows 11 lowers timer precision for programs that aren't in focus or are minimised. This lets games keep the precise timing they ask for, for smoother frame pacing.",
+            Values = [Lm(@"SYSTEM\CurrentControlSet\Control\Session Manager\kernel", "GlobalTimerResolutionRequests", 1)],
+            RequiresAdmin = true,
+            TakesEffect = TakesEffect.AfterRestart,
+        },
+        new RegistryTweak
+        {
+            Id = "mpo-off",
+            Name = "Disable Multiplane Overlay (MPO)",
+            Description = "A known cause of flickering, black screens and stutter in games and on second monitors, especially with NVIDIA cards. Turning it off is the fix NVIDIA itself has recommended.",
+            Values = [Lm(@"SOFTWARE\Microsoft\Windows\Dwm", "OverlayTestMode", 5)],
+            RequiresAdmin = true,
+            TakesEffect = TakesEffect.AfterRestart,
+        },
+        new ScriptTweak
+        {
+            Id = "sysmain",
+            Name = "Turn off SysMain (Superfetch)",
+            Description = "SysMain preloads apps into memory and can cause disk and CPU spikes in the background. With an SSD it adds very little. Apps may open a moment slower the first time.",
+            CheckScript = "(Get-Service SysMain).StartType -eq 'Disabled'",
+            ApplyScript = ServiceOff("SysMain"),
+            RevertScript = ServiceOn("SysMain"),
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "auto-maintenance",
+            Name = "Stop automatic maintenance",
+            Description = "Windows runs disk optimisation, scans and other housekeeping when it thinks you're idle, which can kick in mid-game. Windows Update and Defender still run normally.",
+            Values = [Lm(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance", "MaintenanceDisabled", 1)],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "edge-background",
+            Name = "Stop Microsoft Edge running in the background",
+            Description = "Edge keeps itself running after you close it (Startup boost and background mode), using memory and CPU while you play. Edge just opens a little slower.",
+            Values =
+            [
+                Lm(@"SOFTWARE\Policies\Microsoft\Edge", "StartupBoostEnabled", 0),
+                Lm(@"SOFTWARE\Policies\Microsoft\Edge", "BackgroundModeEnabled", 0),
+            ],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "fast-startup",
+            Name = "Turn off Fast Startup",
+            Description = "With Fast Startup, \"Shut down\" only half-shuts Windows, so drivers and memory are never fully reset and problems build up. Shutting down then gives a truly fresh start. Booting takes a few seconds longer.",
+            Values = [Lm(@"SYSTEM\CurrentControlSet\Control\Session Manager\Power", "HiberbootEnabled", 0)],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "fullscreen-optimizations-global",
+            Name = "Exclusive fullscreen for every game",
+            Description = "Games set to Fullscreen run in true exclusive fullscreen instead of Windows' borderless hybrid. Can lower input delay. Windowed fullscreen (which the crosshair overlay uses) isn't affected.",
+            Values =
+            [
+                Cu(@"System\GameConfigStore", "GameDVR_FSEBehaviorMode", 2),
+                Cu(@"System\GameConfigStore", "GameDVR_HonorUserFSEBehaviorMode", 1),
+                Cu(@"System\GameConfigStore", "GameDVR_FSEBehavior", 2),
+                Cu(@"System\GameConfigStore", "GameDVR_DXGIHonorFSEWindowsCompatible", 1),
+            ],
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "keyboard-repeat",
+            Name = "Fastest key repeat",
+            Description = "Shortest delay and fastest rate when you hold a key down, so held keys respond straight away.",
+            Values = [CuS(@"Control Panel\Keyboard", "KeyboardDelay", "0"), CuS(@"Control Panel\Keyboard", "KeyboardSpeed", "31")],
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "menu-delay",
+            Name = "Instant menus",
+            Description = "Removes the built-in pause before Windows menus and submenus open.",
+            Values = [CuS(@"Control Panel\Desktop", "MenuShowDelay", "0")],
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "startup-delay",
+            Name = "No delay for startup apps",
+            Description = "Windows waits about 10 seconds after you sign in before starting your startup apps. This removes the wait.",
+            Values = [Cu(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize", "StartupDelayInMSec", 0)],
+        },
+
+        // ---- Privacy (never counted in the Spud Score: it's a personal choice) ----
+        new RegistryTweak
+        {
+            Id = "telemetry",
+            Name = "Send Microsoft the minimum diagnostic data",
+            Description = "Limits the usage and diagnostic data Windows sends to Microsoft to the required minimum (no optional data about the apps you use and sites you visit).",
+            Values = [Lm(DataCollectionPolicy, "AllowTelemetry", 0), Lm(DataCollectionPolicy, "DoNotShowFeedbackNotifications", 1)],
+            RequiresAdmin = true,
+        },
+        new ScriptTweak
+        {
+            Id = "diagtrack",
+            Name = "Turn off the telemetry service",
+            Description = "Stops \"Connected User Experiences and Telemetry\" (DiagTrack), the service that collects and uploads diagnostic data in the background. Also saves a little CPU and disk.",
+            CheckScript = "(Get-Service DiagTrack).StartType -eq 'Disabled'",
+            ApplyScript = ServiceOff("DiagTrack"),
+            RevertScript = ServiceOn("DiagTrack"),
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "advertising-id",
+            Name = "Turn off your advertising ID",
+            Description = "Stops apps using your Windows advertising ID to track you and show personalised ads.",
+            Values = [Cu(@"Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0)],
+        },
+        new RegistryTweak
+        {
+            Id = "tailored-experiences",
+            Name = "No tailored experiences",
+            Description = "Stops Microsoft using your diagnostic data to show you personalised tips, ads and recommendations.",
+            Values = [Cu(@"Software\Microsoft\Windows\CurrentVersion\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled", 0)],
+        },
+        new RegistryTweak
+        {
+            Id = "promo-apps",
+            Name = "Stop ads and auto-installed promo apps",
+            Description = "Stops Windows silently installing promoted apps and games, and removes suggestions and ads from Start, Settings and the lock screen.",
+            Values =
+            [
+                Cu(ContentDelivery, "SilentInstalledAppsEnabled", 0),
+                Cu(ContentDelivery, "PreInstalledAppsEnabled", 0),
+                Cu(ContentDelivery, "OemPreInstalledAppsEnabled", 0),
+                Cu(ContentDelivery, "SubscribedContent-338388Enabled", 0),
+                Cu(ContentDelivery, "SubscribedContent-338393Enabled", 0),
+                Cu(ContentDelivery, "SubscribedContent-353694Enabled", 0),
+                Cu(ContentDelivery, "SubscribedContent-353696Enabled", 0),
+                Cu(ContentDelivery, "RotatingLockScreenOverlayEnabled", 0),
+            ],
+        },
+        new RegistryTweak
+        {
+            Id = "activity-history",
+            Name = "Turn off activity history",
+            Description = "Stops Windows recording which apps, files and websites you open and uploading that timeline to Microsoft.",
+            Values =
+            [
+                Lm(@"SOFTWARE\Policies\Microsoft\Windows\System", "PublishUserActivities", 0),
+                Lm(@"SOFTWARE\Policies\Microsoft\Windows\System", "UploadUserActivities", 0),
+            ],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "bing-search",
+            Name = "No web results in Start search",
+            Description = "Start menu search only searches your PC instead of sending what you type to Bing. Also makes search a bit faster.",
+            Values =
+            [
+                Cu(@"Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", 0),
+                Cu(@"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", 1),
+            ],
+            RequiresAdmin = true,
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "typing-data",
+            Name = "Don't send typing and handwriting data",
+            Description = "Stops Windows collecting what you type and write to \"improve\" typing, inking and suggestions.",
+            Values =
+            [
+                Cu(@"Software\Microsoft\Input\TIPC", "Enabled", 0),
+                Cu(@"Software\Microsoft\InputPersonalization", "RestrictImplicitInkCollection", 1),
+                Cu(@"Software\Microsoft\InputPersonalization", "RestrictImplicitTextCollection", 1),
+            ],
+        },
+        new RegistryTweak
+        {
+            Id = "online-speech",
+            Name = "Turn off online speech recognition",
+            Description = "Stops your voice being sent to Microsoft's cloud for dictation and voice typing.",
+            Values = [Cu(@"Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy", "HasAccepted", 0)],
+        },
+        new RegistryTweak
+        {
+            Id = "feedback-prompts",
+            Name = "No feedback requests",
+            Description = "Stops Windows popping up \"How likely are you to recommend...\" feedback questions.",
+            Values = [Cu(@"Software\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod", 0)],
+        },
+        new RegistryTweak
+        {
+            Id = "app-tracking",
+            Name = "Don't track which apps you launch",
+            Description = "Stops Windows keeping a list of the apps you open most to personalise Start and search. Start's \"most used\" list will be empty.",
+            Values = [Cu(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Start_TrackProgs", 0)],
+        },
+        new RegistryTweak
+        {
+            Id = "copilot",
+            Name = "Turn off Windows Copilot",
+            Description = "Turns off Copilot in Windows (on versions that support the switch) so it doesn't run or collect anything.",
+            Values = [Cu(@"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1)],
+            RequiresAdmin = true,
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "recall",
+            Name = "Turn off Recall snapshots",
+            Description = "On Copilot+ PCs, Recall takes regular screenshots of everything you do. This turns that off. Does nothing on PCs without Recall.",
+            Values = [Cu(@"Software\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1)],
+            RequiresAdmin = true,
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "location",
+            Name = "Turn off location access",
+            Description = "Stops Windows and apps using your location. Weather, maps and Find my device won't know where you are.",
+            Values = [LmS(@"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Deny")],
+            RequiresAdmin = true,
         },
     ];
 

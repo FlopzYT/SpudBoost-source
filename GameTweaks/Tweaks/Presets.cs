@@ -12,20 +12,22 @@ public static class Presets
     static readonly string[] SafeTweaks =
     [
         "power-plan", "game-mode", "game-dvr", "game-bar-overlay", "windowed-optimizations", "mouse-accel", "sticky-keys",
-        "windows-tips", "transparency", "background-apps", "fortnite-gpu", "delivery-optimization",
+        "windows-tips", "transparency", "background-apps", "fortnite-gpu", "delivery-optimization", "usb-suspend", "startup-delay", "menu-delay",
+        "edge-background",
     ];
 
     static readonly string[] CompetitiveTweaks =
     [
         .. SafeTweaks,
         "foreground-boost", "game-priority", "hags", "power-throttling", "memory-compression", "nvidia-profiles",
-        "nagle", "net-throttle", "nic-power", "nic-lso", "store-auto-updates",
+        "nagle", "net-throttle", "nic-power", "nic-lso", "store-auto-updates", "core-parking", "timer-resolution", "mpo-off", "auto-maintenance",
+        "keyboard-repeat",
     ];
 
     static readonly string[] MaxFpsTweaks =
     [
         .. CompetitiveTweaks,
-        "visual-effects", "search-indexing", "nic-interrupt", "nvidia-potato",
+        "visual-effects", "search-indexing", "nic-interrupt", "nvidia-potato", "sysmain",
     ];
 
     public static readonly Preset[] All =

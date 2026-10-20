@@ -36,8 +36,13 @@ public sealed class SystemMonitor : ObservableObject
     public string GpuPower { get => _gpuPower; private set => SetField(ref _gpuPower, value); }
     public string GpuName { get => _gpuName; private set => SetField(ref _gpuName, value); }
 
+    /// <summary>Latest readings as numbers (null until read, or not available on this PC).</summary>
+    public double? CpuPercent { get; private set; }
+    public double? GpuTempC { get; private set; }
+    public double? GpuLoadPercent { get; private set; }
+
     /// <summary>Takes one reading. CPU % is measured since the previous call.</summary>
-    public async Task UpdateAsync()
+    public async Task UpdateAsync(bool includeGpu = true)
     {
         if (GetSystemTimes(out var idle, out var kernel, out var user))
         {
@@ -45,6 +50,7 @@ public sealed class SystemMonitor : ObservableObject
             if (_lastTotal > 0 && total > _lastTotal)
             {
                 var busy = 1.0 - (double)(idle.Value - _lastIdle) / (total - _lastTotal);
+                CpuPercent = Math.Clamp(busy, 0, 1) * 100;
                 Cpu = $"{Math.Clamp(busy, 0, 1):P0}";
             }
             _lastIdle = idle.Value;
@@ -59,7 +65,7 @@ public sealed class SystemMonitor : ObservableObject
             RamDetail = $"{used:0.0} of {mem.TotalPhys / (double)(1L << 30):0} GB in use";
         }
 
-        if (HasNvidiaSmi) await ReadNvidiaAsync();
+        if (includeGpu && HasNvidiaSmi) await ReadNvidiaAsync();
     }
 
     async Task ReadNvidiaAsync()
@@ -72,6 +78,8 @@ public sealed class SystemMonitor : ObservableObject
         string Num(string s, string unit, string format = "0") =>
             double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v.ToString(format, CultureInfo.CurrentCulture) + unit : "n/a";
         GpuName = parts[0];
+        GpuLoadPercent = double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var load) ? load : null;
+        GpuTempC = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var temp) ? temp : null;
         Gpu = Num(parts[1], "%");
         GpuTemp = Num(parts[2], " °C");
         GpuClock = Num(parts[3], " MHz");

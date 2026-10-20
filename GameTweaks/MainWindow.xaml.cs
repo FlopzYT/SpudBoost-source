@@ -71,7 +71,12 @@ public partial class MainWindow : Window
         _booster = new GameBooster(_settings);
         BoostPage.DataContext = _booster;
         _tray.BoostToggled += on => _booster.Enabled = on;
-        _booster.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(GameBooster.Enabled)) UpdateTray(); };
+        _booster.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(GameBooster.Enabled)) return;
+            UpdateTray();
+            UpdateScore();
+        };
         RaisePriorityBox.IsChecked = _settings.RaiseGamePriority;
         LowerBackgroundBox.IsChecked = _settings.LowerBackgroundApps;
         GamesBox.Text = string.Join(Environment.NewLine, _settings.GameProcesses);
@@ -100,7 +105,9 @@ public partial class MainWindow : Window
         InitBenchmark();
         _crosshair = new CrosshairController(_settings);
         InitCrosshair();
+        InitAccent();
         InitPages();
+        InitSessions();
         InitPresets();
         InitWhatsNew();
 
@@ -115,6 +122,8 @@ public partial class MainWindow : Window
             CheckPendingImport(); // SpudBoost was started by double-clicking a .spudboost file
             var health = await Task.Run(HealthCheck.Run);
             HealthList.ItemsSource = health;
+            _health = health;
+            UpdateScore();
             HealthCard.Visibility = health.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             HealthHeading.Text = $"⚠ {health.Count} big win{(health.Count == 1 ? "" : "s")} found for this PC";
         };
@@ -220,6 +229,7 @@ public partial class MainWindow : Window
             ? "No tweaks have been applied by SpudBoost yet."
             : $"{count} tweak(s) can be undone and returned to their original values.";
         UpdatePendingCard(all);
+        UpdateScore();
     }
 
     bool _pendingIsRestart;
@@ -515,13 +525,21 @@ public partial class MainWindow : Window
         UpdateUndoSummary();
     }
 
-    async void ApplyAllSystem_Click(object sender, RoutedEventArgs e)
+    async void ApplyAllSystem_Click(object sender, RoutedEventArgs e) =>
+        // Privacy is a personal choice, so it has its own button.
+        await ApplyBulkAsync(_systemTweaks.Where(t => t.Category != "Privacy"), "tweak");
+
+    /// <summary>Location access is left out: turning it off breaks weather and maps, so that one is up to the user.</summary>
+    async void ApplyPrivacy_Click(object sender, RoutedEventArgs e) =>
+        await ApplyBulkAsync(_systemTweaks.Where(t => t.Category == "Privacy" && t.Id != "location"), "privacy tweak");
+
+    async Task ApplyBulkAsync(IEnumerable<Tweak> tweaks, string noun)
     {
         await EnsureTweaksCheckedAsync();
         // Tweaks with a security trade-off are never switched on in bulk; they need their own confirmation.
-        var pending = _systemTweaks.Where(t => !t.IsOn && t.CanToggle && t.ConfirmMessage == null).ToList();
+        var pending = tweaks.Where(t => !t.IsOn && t.CanToggle && t.ConfirmMessage == null).ToList();
         if (pending.Count > 0) await EnsureRestorePointAsync();
-        SetStatus($"Applying {pending.Count} tweak(s)...");
+        SetStatus($"Applying {pending.Count} {noun}(s)...");
         var failures = new List<string>();
         foreach (var t in pending)
         {
@@ -530,8 +548,8 @@ public partial class MainWindow : Window
         }
         await RefreshAllAsync();
         if (failures.Count > 0) ShowError(new Exception(string.Join("\n\n", failures)));
-        else if (pending.Count == 0) SetStatus("Every available tweak is already on.");
-        else SetStatus($"Applied {pending.Count} tweak(s).{(pending.Any(t => t.PendingNote != null) ? " Some need a restart or sign-out to take effect." : "")}");
+        else if (pending.Count == 0) SetStatus($"Every available {noun} is already on.");
+        else SetStatus($"Applied {pending.Count} {noun}(s).{(pending.Any(t => t.PendingNote != null) ? " Some need a restart or sign-out to take effect." : "")}");
     }
 
     // ---- Startup apps ----

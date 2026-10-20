@@ -29,7 +29,9 @@ public static class Shell
     /// <summary>Runs a PowerShell script, passed encoded so no quoting is needed.</summary>
     public static (int ExitCode, string Output) PowerShell(string script)
     {
-        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes("$ErrorActionPreference='Stop'\n" + script));
+        // Without silencing progress, PowerShell writes "Preparing modules for first use" as CLIXML into the
+        // output, which made True/False checks fail and switches look off when they were on.
+        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes("$ErrorActionPreference='Stop'\n$ProgressPreference='SilentlyContinue'\n" + script));
         return Run("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}");
     }
 
