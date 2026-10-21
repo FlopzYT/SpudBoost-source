@@ -13,7 +13,7 @@ public static class Presets
     [
         "power-plan", "game-mode", "game-dvr", "game-bar-overlay", "windowed-optimizations", "mouse-accel", "sticky-keys",
         "windows-tips", "transparency", "background-apps", "fortnite-gpu", "delivery-optimization", "usb-suspend", "startup-delay", "menu-delay",
-        "edge-background",
+        "edge-background", "update-active-hours", "no-update-restart",
     ];
 
     static readonly string[] CompetitiveTweaks =
@@ -21,7 +21,7 @@ public static class Presets
         .. SafeTweaks,
         "foreground-boost", "game-priority", "hags", "power-throttling", "memory-compression", "nvidia-profiles",
         "nagle", "net-throttle", "nic-power", "nic-lso", "store-auto-updates", "core-parking", "timer-resolution", "mpo-off", "auto-maintenance",
-        "keyboard-repeat",
+        "keyboard-repeat", "compat-telemetry", "net-qos-reserve", "net-ecn",
     ];
 
     static readonly string[] MaxFpsTweaks =

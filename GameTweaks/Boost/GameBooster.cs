@@ -53,7 +53,11 @@ public sealed class GameBooster : ObservableObject
         if (_game != null)
         {
             if (!IsRunning(_game)) EndBoost($"{_gameName} closed. Background apps restored.");
-            else if (++_ticksBoosted % 10 == 0) KeepAppsClosed(); // every 30 seconds
+            else if (++_ticksBoosted % 10 == 0) // every 30 seconds
+            {
+                KeepAppsClosed();
+                AutoFreeRam();
+            }
             return;
         }
 
@@ -140,6 +144,17 @@ public sealed class GameBooster : ObservableObject
             if (t.IsCompletedSuccessfully && t.Result.Count > 0)
                 Status = $"Boosting {_gameName}. Closed again: {string.Join(", ", t.Result)}.";
         }, TaskScheduler.FromCurrentSynchronizationContext());
+    }
+
+    /// <summary>Frees standby RAM mid-game when free memory runs low (needs admin; does nothing otherwise).</summary>
+    void AutoFreeRam()
+    {
+        if (!_settings.AutoFreeRam || !Shell.IsAdmin) return;
+        Task.Run(() => MemoryCleaner.Query() is { } m && MemoryCleaner.ShouldAutoFree(m) ? MemoryCleaner.FreeStandby() : 0)
+            .ContinueWith(t =>
+            {
+                if (t.IsCompletedSuccessfully && t.Result > 0) Status = $"Boosting {_gameName}. Freed {t.Result:N0} MB of RAM.";
+            }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     void EndBoost(string status)

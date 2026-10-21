@@ -234,6 +234,7 @@ public partial class MainWindow
         }
         else _monitorTimer.Stop();
 
+        if (page == "CleanerPage") await UpdateRamStatusAsync();
         if (page == "CleanerPage" && !_cleanerScanned) await ScanCleanerAsync();
         if (page == "DebloatPage" && !_debloatLoaded) await LoadDebloatAsync();
         if (page == "LibraryPage" && !_libraryLoaded) await LoadLibraryAsync();
@@ -274,10 +275,45 @@ public partial class MainWindow
         }
         CleanButton.IsEnabled = true;
         _settings.LastAutoClean = DateTime.Now; // also counts as the last Boost-Up clean
+        _settings.JunkCleanedBytes += freed;
         _settings.Save();
         await ScanCleanerAsync();
         CleanerTotal.Text = $"Freed {Cleaner.FormatSize(freed)}." + (problems.Count > 0 ? " " + string.Join(" ", problems) : "");
         SetStatus(CleanerTotal.Text);
+    }
+
+    // ---- RAM ----
+
+    async Task UpdateRamStatusAsync()
+    {
+        AutoRamBox.IsChecked = _settings.AutoFreeRam;
+        AutoRamBox.IsEnabled = FreeRamButton.IsEnabled = Shell.IsAdmin;
+        if (!Shell.IsAdmin)
+        {
+            RamStatus.Text = "Needs administrator rights: click Run as admin at the top.";
+            return;
+        }
+        var m = await Task.Run(MemoryCleaner.Query);
+        RamStatus.Text = m is { } v
+            ? $"{v.FreeMb / 1024.0:0.0} GB free right now · {v.StandbyMb / 1024.0:0.0} GB held in Windows' standby cache"
+            : "Couldn't read memory information on this PC.";
+    }
+
+    async void FreeRam_Click(object sender, RoutedEventArgs e)
+    {
+        FreeRamButton.IsEnabled = false;
+        var freed = await Task.Run(MemoryCleaner.FreeStandby);
+        FreeRamButton.IsEnabled = true;
+        SetStatus(freed < 0 ? "Couldn't free RAM (needs administrator rights)." : $"Freed {freed:N0} MB of RAM.");
+        _settings.RamFreedMb += Math.Max(0, freed);
+        _settings.Save();
+        await UpdateRamStatusAsync();
+    }
+
+    void AutoRam_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.AutoFreeRam = AutoRamBox.IsChecked == true;
+        _settings.Save();
     }
 
     // ---- Debloater ----

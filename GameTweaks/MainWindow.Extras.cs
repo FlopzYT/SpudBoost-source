@@ -55,6 +55,7 @@ public partial class MainWindow
         _booster.Enabled = true;
         var closed = _settings.AppsToClose.Count > 0 ? await Task.Run(() => Boost.ProcessCleaner.Close(_settings.AppsToClose.ToList())) : [];
         if (!Launch(game)) return;
+        Unlock("boosted-play");
         SetStatus($"Boost & Play: Game Boost on{(closed.Count > 0 ? $", closed {string.Join(", ", closed)}" : "")}. Starting {game.Name}...");
         if (game.InstallFolder != null) await LearnGameProcessAsync(game);
     }
@@ -213,6 +214,27 @@ public partial class MainWindow
         if (_sessions == null || MessageBox.Show(this, "Delete your play session history?", "SpudBoost", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
         _sessions.Clear();
         RefreshSessions();
+    }
+
+    /// <summary>Adds a session's busiest background apps to the close list (Windows and security processes are never closed anyway).</summary>
+    void CloseHogs_Click(object sender, RoutedEventArgs e)
+    {
+        var session = (PlaySession)((FrameworkElement)sender).DataContext;
+        var added = session.Hogs.Select(h => h.Name)
+            .Where(n => !Boost.ProcessCleaner.IsProtected(n) && !_settings.AppsToClose.Contains(n, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+        if (added.Count == 0)
+        {
+            SetStatus("Those apps are already on the close list, or are part of Windows and can't be closed.");
+            return;
+        }
+        _settings.AppsToClose.AddRange(added);
+        _settings.CloseAppsOnGameStart = true;
+        _settings.Save();
+        AppsToCloseBox.Text = string.Join(Environment.NewLine, _settings.AppsToClose);
+        CloseAppsBox.IsChecked = true;
+        QueueCloudBackup();
+        SetStatus($"Game Boost will close {string.Join(", ", added)} when you start a game.");
     }
 
     void HeatAlertBox_Click(object sender, RoutedEventArgs e)

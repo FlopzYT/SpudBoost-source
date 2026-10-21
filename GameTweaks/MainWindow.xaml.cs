@@ -129,6 +129,7 @@ public partial class MainWindow : Window
             var health = await Task.Run(HealthCheck.Run);
             HealthList.ItemsSource = health;
             _health = health;
+            _healthLoaded = true;
             UpdateScore();
             HealthCard.Visibility = health.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             HealthHeading.Text = $"⚠ {health.Count} big win{(health.Count == 1 ? "" : "s")} found for this PC";

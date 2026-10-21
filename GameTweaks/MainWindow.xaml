@@ -520,6 +520,44 @@
                         </Border>
                     </UniformGrid>
 
+                    <!-- Achievements -->
+                    <DockPanel Margin="0,8,0,8">
+                        <Border DockPanel.Dock="Right" CornerRadius="6" Background="#1F2535" Padding="8,2" VerticalAlignment="Center">
+                            <TextBlock x:Name="AchievementCount" FontSize="12" FontWeight="SemiBold" Foreground="#B5BCCB"/>
+                        </Border>
+                        <TextBlock Text="Achievements" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <ItemsControl x:Name="AchievementList" Margin="0,0,0,8">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="6"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="Badge" CornerRadius="12" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                        Padding="8,10" Margin="0,0,8,8" ToolTip="{Binding Tip}" Opacity="{Binding Opacity}">
+                                    <StackPanel>
+                                        <Grid Width="38" Height="38" HorizontalAlignment="Center">
+                                            <Ellipse x:Name="Circle" Fill="#1F2535"/>
+                                            <TextBlock x:Name="Icon" Text="{Binding Icon}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="17"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource SubTextBrush}"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding Title}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,6,0,0"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Unlocked}" Value="True">
+                                        <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource AccentGradientBrush}"/>
+                                        <Setter TargetName="Icon" Property="Foreground" Value="#0B0B0B"/>
+                                        <Setter TargetName="Badge" Property="BorderBrush" Value="{DynamicResource AccentDimBrush}"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                     <!-- Your games -->
                     <DockPanel Margin="0,8,0,8">
                         <Button DockPanel.Dock="Right" Content="See all" Margin="0" Click="HomeLibrary_Click"/>
@@ -789,7 +827,18 @@
                         <ComboBox x:Name="DnsCombo" Width="160" Margin="0,0,16,0" SelectionChanged="DnsCombo_SelectionChanged"/>
                         <Button Content="Flush DNS cache" Click="FlushDns_Click"/>
                     </StackPanel>
-                    <ItemsControl x:Name="NetworkList" ItemTemplate="{StaticResource TweakCard}"/>
+                    <ItemsControl x:Name="NetworkList" ItemTemplate="{StaticResource TweakTile}" Margin="0,0,-12,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Margin" Value="0,0,0,12"/>
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                    </ItemsControl>
 
                     <TextBlock Text="Fortnite server ping" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
                     <Border Style="{StaticResource Card}">
@@ -1627,6 +1676,35 @@
                     <TextBlock Text="Cleaner" Style="{StaticResource PageTitle}"/>
                     <TextBlock Style="{StaticResource PageSubtitle}"
                                Text="Frees up space taken by temporary files, logs and caches. Files that are in use are skipped, and temp files from the last 24 hours are left alone. Deleted files don't go to the Recycle Bin."/>
+                    <!-- RAM: free standby memory -->
+                    <Border Style="{StaticResource Card}" Background="{DynamicResource HeroBrush}" Margin="0,0,0,14" Padding="18,16">
+                        <StackPanel>
+                            <DockPanel>
+                                <Button x:Name="FreeRamButton" DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Margin="12,0,0,0" VerticalAlignment="Center" Click="FreeRam_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE945;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Free RAM now"/>
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Text="&#xE950;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="28" Foreground="{DynamicResource AccentBrush}"
+                                           VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Free up RAM" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock x:Name="RamStatus" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,12"/>
+                            <DockPanel>
+                                <ToggleButton x:Name="AutoRamBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="AutoRam_Click"/>
+                                <StackPanel>
+                                    <TextBlock Text="Free RAM automatically while gaming" FontWeight="SemiBold"/>
+                                    <TextBlock Text="When a boosted game is running and free memory drops under 1 GB, SpudBoost releases Windows' standby cache. Fixes stutter when games load new areas on 8–16 GB PCs."
+                                               FontSize="12" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,2,12,0"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="Junk files" Style="{StaticResource SectionTitle}" FontSize="15" Margin="0,4,0,8"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                         <Button x:Name="CleanButton" Content="Clean selected" Style="{StaticResource PrimaryButton}" Click="Clean_Click"/>
                         <Button Content="Scan again" Click="ScanCleaner_Click"/>
@@ -1807,6 +1885,11 @@
                                                 <Run Text="{Binding Game, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="  ·  " Foreground="{StaticResource SubTextBrush}"/><Run Text="{Binding When, Mode=OneWay}" Foreground="{StaticResource SubTextBrush}"/>
                                             </TextBlock>
                                             <TextBlock Text="{Binding Details}" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
+                                            <DockPanel Margin="0,4,0,0" Visibility="{Binding HasHogs, Converter={StaticResource BoolToVis}}">
+                                                <Button DockPanel.Dock="Right" Content="Close these next time" Padding="10,3" FontSize="11" Margin="8,0,0,0"
+                                                        Click="CloseHogs_Click" ToolTip="Adds these apps to Game Boost's close list"/>
+                                                <TextBlock Text="{Binding HogsText}" FontSize="12" Foreground="{StaticResource WarnBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                            </DockPanel>
                                         </StackPanel>
                                     </DockPanel>
                                 </Border>
@@ -1826,18 +1909,51 @@
                 <StackPanel Margin="24,16,24,20">
                     <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
                     <TextBlock Style="{StaticResource PageSubtitle}" Text="How SpudBoost runs on this PC."/>
-                    <Border Style="{StaticResource Card}">
+                    <TextBlock Text="General" Style="{StaticResource SectionTitle}" FontSize="15" Margin="0,4,0,8"/>
+                    <Border Style="{StaticResource Card}" Padding="16,4">
                         <StackPanel>
-                            <CheckBox x:Name="TrayBox" Content="Keep running in the system tray when the window is closed" Click="TrayBox_Click"/>
-                            <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,8"
-                                       Text="Game Boost and the crosshair only work while SpudBoost is running. Right-click the orange potato icon next to the clock to exit."/>
-                            <CheckBox x:Name="StartWithWindowsBox" Content="Start SpudBoost when I sign in (hidden in the tray)" Click="StartWithWindowsBox_Click"/>
-                            <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,8"
-                                       Text="Starts without administrator rights. Game Boost and the crosshair work without them."/>
-                            <CheckBox x:Name="AutoRestorePointBox" Content="Create a Windows restore point before the first tweak" Click="AutoRestorePointBox_Click"/>
-                            <CheckBox x:Name="HeatAlertBox" Content="Warn me when my GPU gets hotter than 85 °C while gaming" Margin="0,8,0,0" Click="HeatAlertBox_Click"/>
+                            <DockPanel Margin="0,10">
+                                <ToggleButton x:Name="TrayBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="TrayBox_Click"/>
+                                <TextBlock DockPanel.Dock="Left" Text="&#xE8A7;" Style="{StaticResource NavIcon}" Foreground="{DynamicResource AccentBrush}"/>
+                                <StackPanel>
+                                    <TextBlock Text="Keep running in the tray when closed" FontWeight="SemiBold"/>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"
+                                               Text="Game Boost and the crosshair only work while SpudBoost runs. Right-click the potato icon next to the clock to exit."/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,10">
+                                <ToggleButton x:Name="StartWithWindowsBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="StartWithWindowsBox_Click"/>
+                                <TextBlock DockPanel.Dock="Left" Text="&#xE7E8;" Style="{StaticResource NavIcon}" Foreground="{DynamicResource AccentBrush}"/>
+                                <StackPanel>
+                                    <TextBlock Text="Start when I sign in" FontWeight="SemiBold"/>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"
+                                               Text="Starts hidden in the tray, without administrator rights."/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,10">
+                                <ToggleButton x:Name="AutoRestorePointBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="AutoRestorePointBox_Click"/>
+                                <TextBlock DockPanel.Dock="Left" Text="&#xE81C;" Style="{StaticResource NavIcon}" Foreground="{DynamicResource AccentBrush}"/>
+                                <StackPanel>
+                                    <TextBlock Text="Restore point before the first tweak" FontWeight="SemiBold"/>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"
+                                               Text="A Windows restore point you can go back to, on top of SpudBoost's own undo."/>
+                                </StackPanel>
+                            </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,10">
+                                <ToggleButton x:Name="HeatAlertBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="HeatAlertBox_Click"/>
+                                <TextBlock DockPanel.Dock="Left" Text="&#xE9CA;" Style="{StaticResource NavIcon}" Foreground="{DynamicResource AccentBrush}"/>
+                                <StackPanel>
+                                    <TextBlock Text="GPU heat warnings" FontWeight="SemiBold"/>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"
+                                               Text="A notification if your graphics card goes above 85 °C while you play (NVIDIA)."/>
+                                </StackPanel>
+                            </DockPanel>
                         </StackPanel>
                     </Border>
+                    <TextBlock Text="Look" Style="{StaticResource SectionTitle}" FontSize="15" Margin="0,10,0,8"/>
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
                             <TextBlock Text="Accent colour" FontWeight="SemiBold"/>
@@ -1851,13 +1967,32 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Button Tag="{Binding Hex}" ToolTip="{Binding Name}" Width="30" Height="30" Padding="0" Margin="0,0,8,0" Click="Accent_Click"
-                                                Background="{Binding Brush}" BorderBrush="{Binding Border}" BorderThickness="2"/>
+                                        <!-- Round swatch; the chosen one gets a white ring -->
+                                        <Button Tag="{Binding Hex}" ToolTip="{Binding Name}" Width="36" Height="36" Margin="0,0,10,0" Click="Accent_Click" Cursor="Hand">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Grid>
+                                                        <Ellipse Stroke="{Binding Border}" StrokeThickness="2"/>
+                                                        <Ellipse x:Name="Dot" Margin="4" Fill="{Binding Brush}" RenderTransformOrigin="0.5,0.5">
+                                                            <Ellipse.RenderTransform>
+                                                                <ScaleTransform x:Name="DotScale"/>
+                                                            </Ellipse.RenderTransform>
+                                                        </Ellipse>
+                                                    </Grid>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Dot" Property="Margin" Value="2"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
                     </Border>
+                    <TextBlock Text="About" Style="{StaticResource SectionTitle}" FontSize="15" Margin="0,10,0,8"/>
                     <Border Style="{StaticResource Card}">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">

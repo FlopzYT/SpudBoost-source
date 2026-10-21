@@ -24,6 +24,12 @@ public sealed class AppSettings
     public bool CloseAppsOnGameStart { get; set; }
     /// <summary>While a game runs, close list apps again if they reopen.</summary>
     public bool KeepAppsClosed { get; set; } = true;
+    /// <summary>While a game runs, free standby RAM when free memory gets low (admin only).</summary>
+    public bool AutoFreeRam { get; set; } = true;
+    /// <summary>Running totals for achievements.</summary>
+    public long RamFreedMb { get; set; }
+    public long JunkCleanedBytes { get; set; }
+    public HashSet<string> Achievements { get; set; } = [];
     /// <summary>Turn off the startup entries of list apps (checked again each time SpudBoost starts).</summary>
     public bool DisableAppsAtStartup { get; set; }
 

@@ -36,6 +36,9 @@ public static class TweakCatalog
         ["promo-apps"] = "Privacy", ["activity-history"] = "Privacy", ["bing-search"] = "Privacy", ["typing-data"] = "Privacy",
         ["online-speech"] = "Privacy", ["feedback-prompts"] = "Privacy", ["app-tracking"] = "Privacy", ["copilot"] = "Privacy",
         ["recall"] = "Privacy", ["location"] = "Privacy",
+        ["update-active-hours"] = "Gaming", ["no-update-restart"] = "Gaming", ["keep-gpu-driver"] = "Gaming",
+        ["compat-telemetry"] = "Performance", ["hibernation"] = "Performance",
+        ["start-recommendations"] = "Windows clutter", ["file-extensions"] = "Windows clutter", ["mouse-hover"] = "Windows clutter",
     };
 
     /// <summary>System tweaks, sorted into their Tweaks page sections.</summary>
@@ -558,6 +561,81 @@ public static class TweakCatalog
             Values = [LmS(@"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Deny")],
             RequiresAdmin = true,
         },
+
+        // ---- Added in 1.6.0 ----
+        new RegistryTweak
+        {
+            Id = "update-active-hours",
+            Name = "No update restarts from 10 AM to 4 AM",
+            Description = "Sets Windows Update's active hours to the longest window Windows allows, so it never restarts your PC for updates during your gaming hours.",
+            Values =
+            [
+                Lm(@"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings", "SmartActiveHoursState", 0),
+                Lm(@"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings", "ActiveHoursStart", 10),
+                Lm(@"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings", "ActiveHoursEnd", 4),
+            ],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "no-update-restart",
+            Name = "Never auto-restart while you're signed in",
+            Description = "Windows waits for you to restart after installing updates instead of restarting by itself while you're signed in. Updates still download and install.",
+            Values = [Lm(@"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU", "NoAutoRebootWithLoggedOnUsers", 1)],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "keep-gpu-driver",
+            Name = "Stop Windows Update replacing your graphics driver",
+            Description = "Windows Update sometimes swaps your NVIDIA/AMD driver for an older one, which can cost FPS or break settings. You update drivers yourself from NVIDIA, AMD or Intel instead.",
+            Values = [Lm(@"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate", "ExcludeWUDriversInQualityUpdate", 1)],
+            RequiresAdmin = true,
+        },
+        new ScriptTweak
+        {
+            Id = "compat-telemetry",
+            Name = "Turn off compatibility telemetry tasks",
+            Description = "Stops the \"Microsoft Compatibility Appraiser\" tasks (CompatTelRunner), which scan your apps in the background and are a known cause of sudden CPU and disk spikes.",
+            CheckScript = "$t = Get-ScheduledTask -TaskPath '\\Microsoft\\Windows\\Application Experience\\' -ErrorAction SilentlyContinue | Where-Object TaskName -match 'Appraiser|ProgramDataUpdater|StartupAppTask'; " +
+                          "$t.Count -gt 0 -and -not ($t | Where-Object State -ne 'Disabled')",
+            ApplyScript = "Get-ScheduledTask -TaskPath '\\Microsoft\\Windows\\Application Experience\\' | Where-Object TaskName -match 'Appraiser|ProgramDataUpdater|StartupAppTask' | Disable-ScheduledTask | Out-Null",
+            RevertScript = "Get-ScheduledTask -TaskPath '\\Microsoft\\Windows\\Application Experience\\' | Where-Object TaskName -match 'Appraiser|ProgramDataUpdater|StartupAppTask' | Enable-ScheduledTask | Out-Null",
+            RequiresAdmin = true,
+        },
+        new ScriptTweak
+        {
+            Id = "hibernation",
+            Name = "Turn off hibernation (frees disk space)",
+            Description = "Deletes hiberfil.sys, which takes up gigabytes on your system drive (often 10–20 GB). Sleep still works; only Hibernate and Fast Startup go away.",
+            CheckScript = "-not (Test-Path (Join-Path $env:SystemDrive 'hiberfil.sys'))",
+            ApplyScript = "powercfg /hibernate off; if ($LASTEXITCODE) { exit 1 }",
+            RevertScript = "powercfg /hibernate on",
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "start-recommendations",
+            Name = "Remove \"Recommended\" from Start",
+            Description = "Hides the Recommended section (recent files and suggested apps) in the Windows 11 Start menu.",
+            Values = [Cu(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Start_IrisRecommendations", 0)],
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
+        new RegistryTweak
+        {
+            Id = "file-extensions",
+            Name = "Show file extensions",
+            Description = "Shows .exe, .zip and so on in File Explorer. Makes it much easier to spot a fake \"photo.jpg.exe\" before you open it.",
+            Values = [Cu(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HideFileExt", 0)],
+        },
+        new RegistryTweak
+        {
+            Id = "mouse-hover",
+            Name = "Faster tooltips and hover",
+            Description = "Shortens how long Windows waits before showing tooltips and taskbar previews when you hover.",
+            Values = [CuS(@"Control Panel\Mouse", "MouseHoverTime", "100")],
+            TakesEffect = TakesEffect.AfterSignOut,
+        },
     ];
 
     public static List<Tweak> Network(string dnsProvider) =>
@@ -617,6 +695,24 @@ public static class TweakCatalog
             Name = "Stop Windows Update sharing uploads",
             Description = "Windows can upload updates to other PCs over the internet in the background. Turning this off keeps your upload free for games.",
             Values = [Lm(@"SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization", "DODownloadMode", 0)],
+            RequiresAdmin = true,
+        },
+        new RegistryTweak
+        {
+            Id = "net-qos-reserve",
+            Name = "Release reserved bandwidth",
+            Description = "Windows can hold back part of your bandwidth for QoS apps. This sets the reservation to 0% so games can use all of it. Small effect on most PCs, no downside.",
+            Values = [Lm(@"SOFTWARE\Policies\Microsoft\Windows\Psched", "NonBestEffortLimit", 0)],
+            RequiresAdmin = true,
+        },
+        new ScriptTweak
+        {
+            Id = "net-ecn",
+            Name = "Turn off TCP ECN",
+            Description = "Explicit Congestion Notification can cause dropped connections and lag spikes with some routers and game servers. Turning it off is a common fix with no downside for gaming.",
+            CheckScript = "(Get-NetTCPSetting -SettingName Internet -ErrorAction SilentlyContinue).EcnCapability -eq 'Disabled'",
+            ApplyScript = "netsh int tcp set global ecncapability=disabled | Out-Null; if ($LASTEXITCODE) { exit 1 }",
+            RevertScript = "netsh int tcp set global ecncapability=default | Out-Null",
             RequiresAdmin = true,
         },
         new DnsTweak

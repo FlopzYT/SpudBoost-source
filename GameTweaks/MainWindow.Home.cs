@@ -39,6 +39,7 @@ public partial class MainWindow
                                                             (g.InstallFolder?.Contains(p.Key, StringComparison.OrdinalIgnoreCase) ?? false)).Sum(p => p.Value);
         HomeGames.ItemsSource = _library.OrderByDescending(g => _settings.FavoriteGames.Contains(g.Key)).ThenByDescending(Played).ThenBy(g => g.Name).Take(5).ToList();
         UpdateDetailStatus();
+        UpdateAchievements();
 
         if (_score is { } s)
         {
