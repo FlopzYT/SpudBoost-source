@@ -34,6 +34,7 @@
     <Using Remove="System.Drawing" />
     <Resource Include="app.ico" />
     <Resource Include="logo.png" />
+    <Resource Include="Terms.md" />
   </ItemGroup>
 
   <ItemGroup>

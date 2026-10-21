@@ -1998,6 +1998,7 @@
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                 <Button x:Name="DownloadUpdateButton" Content="Download update" Style="{StaticResource PrimaryButton}"
                                         Visibility="Collapsed" Click="DownloadUpdate_Click"/>
+                                <Button Content="Terms of Service" Click="ViewTerms_Click"/>
                                 <Button Content="Check for updates" Margin="0" Click="CheckUpdates_Click"/>
                             </StackPanel>
                             <StackPanel>
@@ -2182,6 +2183,56 @@
                                 Visibility="{Binding Visibility, ElementName=WelcomeAdminNote}"/>
                     </StackPanel>
                 </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Terms of Service: shown before anything else until the current version is accepted -->
+        <Grid x:Name="TermsOverlay" Grid.ColumnSpan="2" Grid.RowSpan="3" Visibility="Collapsed" Background="#F20A0C12">
+            <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" CornerRadius="16"
+                    Padding="28,24" MaxWidth="700" Margin="40,30" VerticalAlignment="Stretch" HorizontalAlignment="Center">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,14">
+                        <Image Source="logo.png" Width="40" Height="40" Margin="0,0,12,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="TermsTitle" Text="Terms of Service" FontSize="22" FontWeight="Bold"/>
+                            <TextBlock x:Name="TermsSubtitle" Text="Please read and accept these terms to use SpudBoost." Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="TermsButtons" DockPanel.Dock="Bottom" Margin="0,14,0,0">
+                        <CheckBox x:Name="TermsAgreeBox" Content="I have read and agree to the Terms of Service" Click="TermsAgree_Click"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button x:Name="TermsAcceptButton" Content="Accept and continue" Style="{StaticResource PrimaryButton}" Height="38" Padding="18,6"
+                                    IsEnabled="False" Click="TermsAccept_Click"/>
+                            <Button Content="Decline and exit" Height="38" Click="TermsDecline_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button x:Name="TermsCloseButton" DockPanel.Dock="Bottom" Content="Close" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
+                            Margin="0,14,0,0" Visibility="Collapsed" Click="TermsClose_Click"/>
+                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12">
+                        <ScrollViewer x:Name="TermsScroll" VerticalScrollBarVisibility="Auto" Padding="18,12">
+                            <ItemsControl x:Name="TermsList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock x:Name="Line" Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" LineHeight="20" Margin="0,3"
+                                                   Foreground="{StaticResource SubTextBrush}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsHeading}" Value="True">
+                                                <Setter TargetName="Line" Property="Foreground" Value="{StaticResource TextBrush}"/>
+                                                <Setter TargetName="Line" Property="FontWeight" Value="SemiBold"/>
+                                                <Setter TargetName="Line" Property="FontSize" Value="15"/>
+                                                <Setter TargetName="Line" Property="Margin" Value="0,14,0,2"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsBullet}" Value="True">
+                                                <Setter TargetName="Line" Property="Text" Value="{Binding Text, StringFormat=•  {0}}"/>
+                                                <Setter TargetName="Line" Property="Margin" Value="10,2,0,2"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </DockPanel>
             </Border>
         </Grid>
     </Grid>

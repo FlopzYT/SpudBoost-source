@@ -116,6 +116,7 @@ public partial class MainWindow : Window
         InitAccount();
         InitPresets();
         InitWhatsNew();
+        InitTerms();
 
         UpdateTray();
 

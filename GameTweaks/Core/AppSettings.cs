@@ -55,6 +55,9 @@ public sealed class AppSettings
     public List<string> FavoriteGames { get; set; } = [];
     /// <summary>Upload to the account's cloud save after changes (when signed in).</summary>
     public bool CloudAutoBackup { get; set; } = true;
+    /// <summary>Which version of the Terms of Service was accepted (0 = not yet) and when.</summary>
+    public int TermsAcceptedVersion { get; set; }
+    public DateTime TermsAcceptedAt { get; set; }
 
     /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
     public string? LastNotifiedUpdate { get; set; }
