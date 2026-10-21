@@ -225,7 +225,8 @@ public sealed class AccountService : ObservableObject
         if (!Configured) throw new AccountException("Accounts aren't set up in this version of SpudBoost yet.");
         using var request = new HttpRequestMessage(method, AccountConfig.SupabaseUrl.TrimEnd('/') + path);
         request.Headers.Add("apikey", AccountConfig.AnonKey);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", auth ? _accessToken : AccountConfig.AnonKey);
+        // Publishable keys (sb_publishable_...) go in the apikey header only; the bearer token is the signed-in user's.
+        if (auth) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         if (prefer != null) request.Headers.Add("Prefer", prefer);
         if (body != null) request.Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json");
 
