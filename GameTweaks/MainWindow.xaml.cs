@@ -113,6 +113,7 @@ public partial class MainWindow : Window
         InitPages();
         InitSessions();
         InitHome();
+        InitAccount();
         InitPresets();
         InitWhatsNew();
 
@@ -279,7 +280,7 @@ public partial class MainWindow : Window
         CrosshairPage.DataContext = _crosshair;
         CrosshairStyleCombo.ItemsSource = CrosshairRenderer.Styles;
         CrosshairEditCombo.ItemsSource = _crosshair.EditTargets;
-        _crosshair.Changed += () => { DrawCrosshairPreview(); UpdateTray(); };
+        _crosshair.Changed += () => { DrawCrosshairPreview(); UpdateTray(); QueueCloudBackup(); };
         _tray.CrosshairToggled += on => _crosshair.Enabled = on;
         DrawCrosshairPreview();
     }
@@ -613,6 +614,7 @@ public partial class MainWindow : Window
         _settings.AppsToClose = Lines(AppsToCloseBox.Text);
         _settings.Save();
         SetStatus("Game Boost lists saved.");
+        QueueCloudBackup();
         if (_settings.DisableAppsAtStartup) _ = DisableListedStartupAppsAsync(quiet: true);
     }
 

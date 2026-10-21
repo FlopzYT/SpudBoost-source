@@ -149,6 +149,7 @@ public partial class MainWindow
         _settings.Save();
         SortLibrary();
         UpdateHome();
+        QueueCloudBackup();
     }
 
     /// <summary>Favourites first, then alphabetical.</summary>

@@ -254,6 +254,7 @@ public partial class MainWindow
         _settings.Save();
         ApplyAccent(hex);
         RefreshAccentList();
+        QueueCloudBackup();
     }
 
     /// <summary>Swaps the accent brushes; every control uses them as dynamic resources, so the change is instant.</summary>

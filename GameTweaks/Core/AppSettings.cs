@@ -47,6 +47,8 @@ public sealed class AppSettings
     public bool GpuHeatAlerts { get; set; } = true;
     /// <summary>Library keys (e.g. "steam-730") of favourite games, shown first.</summary>
     public List<string> FavoriteGames { get; set; } = [];
+    /// <summary>Upload to the account's cloud save after changes (when signed in).</summary>
+    public bool CloudAutoBackup { get; set; } = true;
 
     /// <summary>Newest version already announced with a notification, so each update pops up only once.</summary>
     public string? LastNotifiedUpdate { get; set; }

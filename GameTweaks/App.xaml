@@ -445,6 +445,13 @@
             <Setter Property="CaretBrush" Value="{StaticResource TextBrush}"/>
             <Setter Property="Padding" Value="6,4"/>
         </Style>
+        <Style TargetType="PasswordBox">
+            <Setter Property="Background" Value="#11141A"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
         <!-- Dark dropdowns to match the rest of the app -->
         <Style TargetType="ComboBoxItem">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>

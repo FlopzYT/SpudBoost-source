@@ -36,4 +36,9 @@
     <Resource Include="logo.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- DPAPI: keeps the saved sign-in encrypted for this Windows user -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
 </Project>
