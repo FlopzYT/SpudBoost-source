@@ -46,8 +46,10 @@ public sealed class AdapterPropertyTweak : Tweak
             .ToList();
     }
 
+    // "Allow the computer to turn off this device" isn't a parameter of Set-NetAdapterPowerManagement:
+    // it's changed on the power-management object itself, which is then saved back.
     static string SetCommand(string adapter, string property, string value) => property == PowerProperty
-        ? $"Set-NetAdapterPowerManagement -Name {Quote(adapter)} -AllowComputerToTurnOffDevice {value} -NoRestart"
+        ? $"$pm = Get-NetAdapterPowerManagement -Name {Quote(adapter)}; $pm.AllowComputerToTurnOffDevice = {Quote(value)}; $pm | Set-NetAdapterPowerManagement -NoRestart"
         : $"Set-NetAdapterAdvancedProperty -Name {Quote(adapter)} -DisplayName {Quote(property)} -DisplayValue {Quote(value)} -NoRestart";
 
     /// <summary>Runs the changes, then restarts each touched adapter once (a few seconds offline).</summary>

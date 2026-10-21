@@ -31,8 +31,27 @@ public static class Shell
     {
         // Without silencing progress, PowerShell writes "Preparing modules for first use" as CLIXML into the
         // output, which made True/False checks fail and switches look off when they were on.
-        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes("$ErrorActionPreference='Stop'\n$ProgressPreference='SilentlyContinue'\n" + script));
-        return Run("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}");
+        // Errors are caught and printed as plain text; otherwise PowerShell writes them as CLIXML, which users saw as raw XML.
+        var wrapped = "$ErrorActionPreference='Stop'\n$ProgressPreference='SilentlyContinue'\n" +
+                      "try {\n" + script + "\n} catch { [Console]::Out.WriteLine($_.Exception.Message); exit 1 }";
+        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(wrapped));
+        var (code, output) = Run("powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {encoded}");
+        return (code, StripClixml(output));
+    }
+
+    /// <summary>Turns any leftover "#&lt; CLIXML" error blocks into their plain message text.</summary>
+    static string StripClixml(string output)
+    {
+        var start = output.IndexOf("#< CLIXML", StringComparison.Ordinal);
+        if (start < 0) return output;
+        var errors = System.Text.RegularExpressions.Regex.Matches(output[start..], "<S S=\"Error\">(.*?)</S>")
+            .Select(m => System.Net.WebUtility.HtmlDecode(m.Groups[1].Value).Replace("_x000D__x000A_", " ").Trim())
+            .Where(s => s.Length > 0);
+        var text = string.Join(" ", errors);
+        // Keep only the first sentence-ish part: PowerShell appends "At line:..." position noise.
+        var at = text.IndexOf(" At line:", StringComparison.Ordinal);
+        if (at > 0) text = text[..at];
+        return (output[..start] + text).Trim();
     }
 
     public static void RestartAsAdmin()
