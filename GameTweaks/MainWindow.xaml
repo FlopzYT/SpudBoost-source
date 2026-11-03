@@ -302,7 +302,7 @@
                     </StackPanel>
                 </StackPanel>
                 <!-- Get Support stays at the bottom -->
-                <Button DockPanel.Dock="Bottom" Style="{StaticResource SideLink}" Margin="12,2,12,12" Click="GetSupport_Click" ToolTip="Opens SpudBoost's GitHub page to report a problem or ask a question">
+                <Button DockPanel.Dock="Bottom" Style="{StaticResource SideLink}" Margin="12,2,12,12" Click="GetSupport_Click" ToolTip="Join the SpudBoost Discord for help, bug reports and suggestions">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Right" Style="{StaticResource NavIcon}" Text="&#xE8A7;" FontSize="15" Margin="0" Width="Auto"/>
                         <TextBlock Style="{StaticResource NavIcon}" Text="&#xE897;"/>

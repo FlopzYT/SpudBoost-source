@@ -53,4 +53,4 @@ When you publish a .spudboost config, you let anyone who gets it use it. Install
 
 ## 8. Contact
 
-Questions or problems: open an issue at https://github.com/FlopzYT/SpudBoost/issues or use Get Support in the app.
+Questions or problems: join the SpudBoost Discord with Get Support in the app (https://discord.gg/PZdabSCMH), or open an issue at https://github.com/FlopzYT/SpudBoost/issues.

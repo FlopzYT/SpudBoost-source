@@ -84,6 +84,9 @@ public partial class MainWindow
 
     bool _selectingSection;
 
+    /// <summary>The SpudBoost Discord, used for support. Should be an invite set to never expire.</summary>
+    public const string DiscordInvite = "https://discord.gg/PZdabSCMH";
+
     void GetSupport_Click(object sender, RoutedEventArgs e) =>
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo($"https://github.com/{Core.UpdateChecker.Repository}/issues") { UseShellExecute = true });
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(DiscordInvite) { UseShellExecute = true });
 }
