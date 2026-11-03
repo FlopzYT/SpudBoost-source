@@ -180,6 +180,7 @@ public partial class MainWindow
     {
         _sessions = new SessionTracker(_settings);
         HeatAlertBox.IsChecked = _settings.GpuHeatAlerts;
+        CheckInBox.IsChecked = _settings.UsageCheckIn;
         _sessions.SessionStarted += _ => RefreshSessions();
         _sessions.SessionEnded += s =>
         {
@@ -234,6 +235,13 @@ public partial class MainWindow
         AppsToCloseBox.Text = string.Join(Environment.NewLine, _settings.AppsToClose);
         CloseAppsBox.IsChecked = true;
         SetStatus($"Game Boost will close {string.Join(", ", added)} when you start a game.");
+    }
+
+    void CheckInBox_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.UsageCheckIn = CheckInBox.IsChecked == true;
+        _settings.Save();
+        SetStatus(_settings.UsageCheckIn ? "Anonymous daily check-in is on. Thanks for helping count SpudBoost users!" : "Anonymous daily check-in is off. Nothing will be sent.");
     }
 
     void HeatAlertBox_Click(object sender, RoutedEventArgs e)

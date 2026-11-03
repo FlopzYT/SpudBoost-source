@@ -1883,6 +1883,16 @@
                                                Text="A notification if your graphics card goes above 85 °C while you play (NVIDIA)."/>
                                 </StackPanel>
                             </DockPanel>
+                            <Border Height="1" Background="{StaticResource BorderBrush}"/>
+                            <DockPanel Margin="0,10">
+                                <ToggleButton x:Name="CheckInBox" DockPanel.Dock="Right" Style="{StaticResource Switch}" Click="CheckInBox_Click"/>
+                                <TextBlock DockPanel.Dock="Left" Text="&#xE9D9;" Style="{StaticResource NavIcon}" Foreground="{DynamicResource AccentBrush}"/>
+                                <StackPanel>
+                                    <TextBlock Text="Anonymous daily check-in" FontWeight="SemiBold"/>
+                                    <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"
+                                               Text="Once a day, sends a random ID and your SpudBoost version so we can count how many people use SpudBoost. No name, email, PC details or game info."/>
+                                </StackPanel>
+                            </DockPanel>
                         </StackPanel>
                     </Border>
                     <TextBlock Text="Look" Style="{StaticResource SectionTitle}" FontSize="15" Margin="0,10,0,8"/>

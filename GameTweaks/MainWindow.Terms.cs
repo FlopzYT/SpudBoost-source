@@ -9,7 +9,7 @@ namespace GameTweaks;
 public partial class MainWindow
 {
     /// <summary>Raise this when Terms.md changes in a way people need to accept again.</summary>
-    public const int TermsVersion = 1;
+    public const int TermsVersion = 2;
 
     static List<ReleaseNoteLine> LoadTerms()
     {

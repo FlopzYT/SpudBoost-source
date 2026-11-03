@@ -65,6 +65,9 @@ public partial class MainWindow
     {
         _choreTicks++;
 
+        // Once a day (only after the current Terms were accepted): anonymous check-in.
+        if (_settings.TermsAcceptedVersion >= TermsVersion) await CheckIn.SendIfDueAsync(_settings);
+
         // Every minute: put saved Fortnite settings back if the game reset them.
         try
         {

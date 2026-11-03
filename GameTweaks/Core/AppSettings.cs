@@ -53,6 +53,11 @@ public sealed class AppSettings
     public bool GpuHeatAlerts { get; set; } = true;
     /// <summary>Library keys (e.g. "steam-730") of favourite games, shown first.</summary>
     public List<string> FavoriteGames { get; set; } = [];
+    /// <summary>Anonymous daily check-in (see CheckIn.cs): on by default, can be switched off in Settings.</summary>
+    public bool UsageCheckIn { get; set; } = true;
+    /// <summary>Random ID made on this PC for the check-in; not linked to the person or hardware.</summary>
+    public Guid InstallId { get; set; }
+    public string? LastCheckInDay { get; set; }
     /// <summary>Which version of the Terms of Service was accepted (0 = not yet) and when.</summary>
     public int TermsAcceptedVersion { get; set; }
     public DateTime TermsAcceptedAt { get; set; }

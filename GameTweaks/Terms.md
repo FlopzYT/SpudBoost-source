@@ -1,6 +1,6 @@
 # SpudBoost Terms of Service
 
-Last updated: November 2, 2026
+Last updated: November 3, 2026
 
 These terms are an agreement between you and the developer of SpudBoost ("we", "us"). By installing or using SpudBoost, you agree to them. If you don't agree, don't use SpudBoost.
 
@@ -38,6 +38,7 @@ SpudBoost is provided "as is" and "as available", without warranties of any kind
 SpudBoost collects as little as possible:
 
 - **On your PC:** settings, backups, play sessions and benchmark results are stored in your user folder and never uploaded.
+- **Anonymous daily check-in:** once a day SpudBoost sends a random ID made on your PC and the SpudBoost version, so we can count how many people use it. It contains no name, email, PC details or game info, and isn't linked to you. It's stored with our provider, Supabase. Turn it off any time in Settings.
 - **Internet requests:** SpudBoost checks GitHub for updates, gets game info and pictures from Steam's public store, and pings game servers when you test your ping. These services see your IP address like any website does.
 - We don't sell your data and don't show ads.
 
