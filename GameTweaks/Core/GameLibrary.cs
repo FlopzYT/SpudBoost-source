@@ -26,8 +26,11 @@ public sealed class LibraryGame
     /// <summary>Epic app name (e.g. "Fortnite").</summary>
     public string? EpicAppName { get; init; }
 
+    /// <summary>For games that aren't from Steam or Epic (e.g. "roblox", "ms-minecraft").</summary>
+    public string? OtherKey { get; init; }
+
     /// <summary>Stable id used for settings and tweak ids, e.g. "steam-730".</summary>
-    public string Key => SteamAppId != null ? $"steam-{SteamAppId}" : EpicAppName != null ? $"epic-{EpicAppName.ToLowerInvariant()}" : "ms-minecraft";
+    public string Key => SteamAppId != null ? $"steam-{SteamAppId}" : EpicAppName != null ? $"epic-{EpicAppName.ToLowerInvariant()}" : OtherKey ?? "ms-minecraft";
 
     ImageSource? _image;
     bool _imageLoaded;
@@ -61,6 +64,7 @@ public static class GameLibrary
         try { games.AddRange(Epic()); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         try { games.AddRange(Steam()); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         if (Minecraft() is { } mc) games.Add(mc);
+        if (Roblox() is { } roblox) games.Add(roblox);
         return games
             .GroupBy(g => g.Name, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
             .OrderBy(g => g.Name, StringComparer.CurrentCultureIgnoreCase)
@@ -158,6 +162,29 @@ public static class GameLibrary
             return new[] { "library_600x900.jpg", "library_capsule.jpg", "header.jpg", "library_header.jpg" }
                 .Select(name => Directory.GetFiles(dir, name, SearchOption.AllDirectories).FirstOrDefault())
                 .FirstOrDefault(f => f != null);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return null; }
+    }
+
+    /// <summary>Roblox installs itself per user and updates into a new versions folder each time; the newest one is used.</summary>
+    static LibraryGame? Roblox()
+    {
+        var versions = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Roblox\Versions");
+        if (!Directory.Exists(versions)) return null;
+        try
+        {
+            var exe = new DirectoryInfo(versions).EnumerateFiles("RobloxPlayerBeta.exe", SearchOption.AllDirectories)
+                .OrderByDescending(f => f.LastWriteTimeUtc).FirstOrDefault();
+            if (exe == null) return null;
+            return new LibraryGame
+            {
+                Name = "Roblox",
+                Source = "Roblox",
+                OtherKey = "roblox",
+                LaunchTarget = exe.FullName, // opens the Roblox app, where you pick an experience
+                InstallFolder = exe.DirectoryName,
+                IconExe = exe.FullName,
+            };
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return null; }
     }

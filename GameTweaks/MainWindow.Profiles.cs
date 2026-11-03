@@ -57,7 +57,7 @@ public partial class MainWindow
         var profile = await CaptureProfileAsync(name);
         if (existing != null) _profiles.Remove(existing);
         _profiles.Add(profile);
-        PersonalProfiles.Save(_profiles); QueueCloudBackup();
+        PersonalProfiles.Save(_profiles);
         RefreshProfiles();
         NewProfileName.Text = "";
         SetStatus($"Saved profile \"{name}\": {profile.Summary}.");
@@ -70,7 +70,7 @@ public partial class MainWindow
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         var profile = await CaptureProfileAsync(old.Name);
         _profiles[_profiles.IndexOf(old)] = profile;
-        PersonalProfiles.Save(_profiles); QueueCloudBackup();
+        PersonalProfiles.Save(_profiles);
         RefreshProfiles();
         SetStatus($"Updated profile \"{old.Name}\".");
     }
@@ -81,7 +81,7 @@ public partial class MainWindow
         if (MessageBox.Show(this, $"Delete the \"{profile.Name}\" profile? This doesn't change any settings.", "SpudBoost",
                 MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
         _profiles.Remove(profile);
-        PersonalProfiles.Save(_profiles); QueueCloudBackup();
+        PersonalProfiles.Save(_profiles);
         RefreshProfiles();
     }
 
@@ -133,7 +133,7 @@ public partial class MainWindow
         for (var i = 2; _profiles.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{profile.Name} ({i})";
         profile.Name = name;
         _profiles.Add(profile);
-        PersonalProfiles.Save(_profiles); QueueCloudBackup();
+        PersonalProfiles.Save(_profiles);
         RefreshProfiles();
         ShowFromTray();
         NavigateTo("ProfilesPage");
@@ -169,7 +169,7 @@ public partial class MainWindow
 
         var all = AllTweaks.ToList();
         var wanted = profile.Tweaks.ToHashSet();
-        var toOn = profile.IncludesTweaks ? all.Where(t => wanted.Contains(t.Id) && !t.IsOn).ToList() : [];
+        var toOn = profile.IncludesTweaks ? all.Where(t => wanted.Contains(t.Id) && !t.IsOn && !RetiredTweaks.Contains(t.Id)).ToList() : [];
         // Only undo tweaks SpudBoost itself applied; settings Windows already had are left alone.
         var toOff = profile.IncludesTweaks ? all.Where(t => !wanted.Contains(t.Id) && t.IsOn && t.HasBackup).ToList() : [];
         var skipped = toOn.Where(t => !t.CanToggle || t.ConfirmMessage != null).Concat(toOff.Where(t => !t.CanToggle)).ToList();

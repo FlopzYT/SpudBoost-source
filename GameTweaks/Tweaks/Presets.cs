@@ -27,13 +27,13 @@ public static class Presets
     static readonly string[] MaxFpsTweaks =
     [
         .. CompetitiveTweaks,
-        "visual-effects", "search-indexing", "nic-interrupt", "nvidia-potato", "sysmain",
+        "visual-effects", "search-indexing", "nic-interrupt", "sysmain",
     ];
 
     public static readonly Preset[] All =
     [
         new("Safe", "🛡", "Easy wins with no downsides: power plan, Game Mode, no background recording or pop-ups, raw mouse input.", SafeTweaks, null),
         new("Competitive", "🎯", "Safe + CPU and GPU priority, low-latency network tweaks and NVIDIA performance settings. Fortnite: low settings, sharp image, far view distance.", CompetitiveTweaks, "competitive"),
-        new("Max FPS", "🥔", "Everything: Competitive + no animations, no search indexing and NVIDIA potato textures. Fortnite: Ultra Potato.", MaxFpsTweaks, "ultra"),
+        new("Max FPS", "🚀", "Everything: Competitive + no animations, no search indexing and no SysMain. Fortnite: low settings, sharp image, far view distance.", MaxFpsTweaks, "competitive"),
     ];
 }

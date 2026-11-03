@@ -34,8 +34,6 @@ public partial class MainWindow : Window
 
     IEnumerable<Tweak> AllTweaks => _systemTweaks.Concat(_networkTweaks).Concat(_fortniteTweaks).Concat(_gameTweaks).Concat(_libraryTweaks.Values.SelectMany(t => t));
 
-    /// <summary>AMD's Windows driver ships atiadlxx.dll (the AMD Display Library).</summary>
-    static bool HasAmdGpu() => File.Exists(Path.Combine(Environment.SystemDirectory, "atiadlxx.dll"));
     readonly DnsTweak _dns;
     readonly GameBooster _booster;
     readonly FortniteSettings _fortnite = new();
@@ -58,11 +56,9 @@ public partial class MainWindow : Window
 
         _systemTweaks = TweakCatalog.System(() => _settings.GameProcesses);
         _networkTweaks = TweakCatalog.Network(_settings.DnsProvider);
+        // Potato textures were removed in 1.6.1; kept only so anyone who had them on can undo them.
         _fortniteTweaks = TweakCatalog.Fortnite(() => _settings.PotatoFlatness);
         InitGames();
-        FortniteTweakList.ItemsSource = _fortniteTweaks;
-        FortniteGpuCard.Visibility = _fortniteTweaks.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        AmdPotatoCard.Visibility = HasAmdGpu() ? Visibility.Visible : Visibility.Collapsed;
         _dns = _networkTweaks.OfType<DnsTweak>().Single();
         InitTweakList();
         PageHeading.Text = "Home";
@@ -113,7 +109,6 @@ public partial class MainWindow : Window
         InitPages();
         InitSessions();
         InitHome();
-        InitAccount();
         InitPresets();
         InitWhatsNew();
         InitTerms();
@@ -122,7 +117,7 @@ public partial class MainWindow : Window
 
         // Read every tweak's real state right away, even when starting hidden in the tray,
         // so the switches are correct by the time the window is opened.
-        _ = RefreshAllAsync();
+        _ = StartupRefreshAsync();
 
         Loaded += async (_, _) =>
         {
@@ -282,7 +277,7 @@ public partial class MainWindow : Window
         CrosshairPage.DataContext = _crosshair;
         CrosshairStyleCombo.ItemsSource = CrosshairRenderer.Styles;
         CrosshairEditCombo.ItemsSource = _crosshair.EditTargets;
-        _crosshair.Changed += () => { DrawCrosshairPreview(); UpdateTray(); QueueCloudBackup(); };
+        _crosshair.Changed += () => { DrawCrosshairPreview(); UpdateTray(); };
         _tray.CrosshairToggled += on => _crosshair.Enabled = on;
         DrawCrosshairPreview();
     }
@@ -616,7 +611,6 @@ public partial class MainWindow : Window
         _settings.AppsToClose = Lines(AppsToCloseBox.Text);
         _settings.Save();
         SetStatus("Game Boost lists saved.");
-        QueueCloudBackup();
         if (_settings.DisableAppsAtStartup) _ = DisableListedStartupAppsAsync(quiet: true);
     }
 
@@ -686,43 +680,10 @@ public partial class MainWindow : Window
         ResPresetCombo.SelectedIndex = 0;
     }
 
-    void UltraPotatoPreset_Click(object sender, RoutedEventArgs e)
-    {
-        _fortnite.ApplyUltraPotatoPreset();
-        SetStatus("Ultra potato loaded: Performance mode, Low mesh, 25% 3D resolution, 1440×1080 stretched. Click Save to Fortnite.");
-    }
-
-    async void OpenNvidia_Click(object sender, RoutedEventArgs e)
-    {
-        var (_, output) = await Task.Run(() => Shell.PowerShell("(Get-AppxPackage -Name NVIDIACorp.NVIDIAControlPanel).PackageFamilyName"));
-        if (string.IsNullOrWhiteSpace(output))
-        {
-            SetStatus("NVIDIA Control Panel isn't installed (no NVIDIA GPU, or get it from the Microsoft Store).");
-            return;
-        }
-        Launch($"shell:AppsFolder\\{output.Trim()}!NVIDIACorp.NVIDIAControlPanel");
-    }
-
-    void OpenAmd_Click(object sender, RoutedEventArgs e)
-    {
-        var exe = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"AMD\CNext\CNext\RadeonSoftware.exe");
-        if (File.Exists(exe)) Launch(exe);
-        else SetStatus("AMD Software isn't installed (no AMD GPU detected).");
-    }
-
-    static void Launch(string target) =>
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", target) { UseShellExecute = true });
-
     void CopyLegacyArgs_Click(object sender, RoutedEventArgs e)
     {
         Clipboard.SetText(FortniteSettings.LegacyLaunchArgs);
         SetStatus($"Copied \"{FortniteSettings.LegacyLaunchArgs}\". Paste it into the Epic launcher's Additional Command Line Arguments for Fortnite.");
-    }
-
-    void PotatoPreset_Click(object sender, RoutedEventArgs e)
-    {
-        _fortnite.ApplyPotatoPreset();
-        SetStatus("Potato preset loaded. Adjust anything you like, then click Save to Fortnite.");
     }
 
     void CompetitivePreset_Click(object sender, RoutedEventArgs e)

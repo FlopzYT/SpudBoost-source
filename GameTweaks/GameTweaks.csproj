@@ -14,7 +14,7 @@
     <Product>SpudBoost</Product>
     <Company>SpudBoost</Company>
     <AssemblyTitle>SpudBoost</AssemblyTitle>
-    <Version>1.6.0</Version>
+    <Version>1.6.1</Version>
     <Description>Windows and game performance tweaks with one-click undo.</Description>
   </PropertyGroup>
 
@@ -35,11 +35,6 @@
     <Resource Include="app.ico" />
     <Resource Include="logo.png" />
     <Resource Include="Terms.md" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- DPAPI: keeps the saved sign-in encrypted for this Windows user -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

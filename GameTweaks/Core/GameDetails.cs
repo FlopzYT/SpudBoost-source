@@ -32,6 +32,11 @@ public static class GameDetails
             Description = "The free-to-play battle royale from Epic Games: drop in, build or go Zero Build, and be the last one standing. SpudBoost has a full Fortnite page with potato graphics, a custom crosshair and more.",
             Genres = ["Battle royale", "Shooter", "Free to play"], Developer = "Epic Games", ReleaseDate = "Jul 25, 2017",
         },
+        ["roblox"] = new()
+        {
+            Description = "Play millions of experiences made by the community, from obbies to shooters to tycoons. SpudBoost has a Roblox page with graphics settings and an FPS cap you can raise.",
+            Genres = ["Platform", "Multiplayer", "Free to play"], Developer = "Roblox Corporation", ReleaseDate = "Sep 1, 2006",
+        },
         ["ms-minecraft"] = new()
         {
             Description = "Build, explore and survive in endless blocky worlds. The launcher starts both Java and Bedrock editions.",

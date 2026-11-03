@@ -29,8 +29,6 @@ public partial class MainWindow
         OverlayRegionCombo.ItemsSource = PingTester.RegionNames.ToList();
         Application.Current.Exit += (_, _) => _statsOverlay.Shutdown();
         KeepFortniteBox.IsChecked = _settings.KeptFortniteSettings != null;
-        FlatnessCombo.ItemsSource = NvidiaProfileTweak.FlatnessLevels;
-        FlatnessCombo.SelectedIndex = Math.Clamp(_settings.PotatoFlatness, 1, 3) - 1;
         StartBackgroundChores();
         if (!SystemMonitor.HasNvidiaSmi)
             MonitorSubtitle.Text += " GPU readings need an NVIDIA graphics card.";
@@ -67,11 +65,11 @@ public partial class MainWindow
     {
         _choreTicks++;
 
-        // Every minute: put Fortnite potato settings back if the game reset them.
+        // Every minute: put saved Fortnite settings back if the game reset them.
         try
         {
             if (await Task.Run(_fortniteGuard!.CheckAndRestore))
-                _tray.ShowHint("Fortnite had reset your potato settings. SpudBoost put them back (backup saved).");
+                _tray.ShowHint("Fortnite had reset your settings. SpudBoost put them back (backup saved).");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException) { }
 
@@ -116,32 +114,6 @@ public partial class MainWindow
         _settings.AutoCleanWeekly = AutoCleanBox.IsChecked == true;
         _settings.Save();
         SetStatus(_settings.AutoCleanWeekly ? "Temp files, logs and crash dumps will be cleaned automatically once a week." : "Weekly cleaning turned off.");
-    }
-
-    // ---- NVIDIA potato textures strength ----
-
-    /// <summary>Saves the new level; if potato textures are already on, re-applies them at the new strength.</summary>
-    async void Flatness_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        var level = FlatnessCombo.SelectedIndex + 1;
-        if (level < 1 || level == _settings.PotatoFlatness) return;
-        _settings.PotatoFlatness = level;
-        _settings.Save();
-
-        if (_fortniteTweaks.FirstOrDefault(t => t.Id == "nvidia-potato") is not { HasBackup: true } potato) return;
-        if (!potato.CanToggle)
-        {
-            SetStatus("Flatness saved. Run as admin and switch NVIDIA potato textures off and on to use it.");
-            return;
-        }
-        SetStatus($"Changing NVIDIA potato textures to {NvidiaProfileTweak.FlatnessLevels[level - 1]}...");
-        try
-        {
-            await Task.Run(potato.Apply);
-            await Task.Run(potato.Refresh);
-            SetStatus($"NVIDIA potato textures set to {NvidiaProfileTweak.FlatnessLevels[level - 1]}. Restart Fortnite to see it.");
-        }
-        catch (Exception ex) { ShowError(ex); }
     }
 
     // ---- Tweaks page: sections and search ----

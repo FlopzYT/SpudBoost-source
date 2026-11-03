@@ -309,24 +309,6 @@
                         <TextBlock Text="Get Support" VerticalAlignment="Center"/>
                     </DockPanel>
                 </Button>
-                <!-- Account: avatar + name, or Sign in -->
-                <Button DockPanel.Dock="Bottom" Style="{StaticResource SideLink}" Height="54" Margin="12,2" Click="AccountButton_Click" ToolTip="Your SpudBoost account">
-                    <DockPanel>
-                        <Grid Width="32" Height="32" Margin="0,0,10,0">
-                            <Ellipse Fill="{DynamicResource AccentGradientBrush}"/>
-                            <TextBlock x:Name="AvatarInitial" Text="?" FontWeight="Bold" FontSize="14" Foreground="#0B0B0B"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Border x:Name="SidebarPremiumBadge" DockPanel.Dock="Right" Style="{StaticResource NewBadge}" Visibility="Collapsed">
-                            <TextBlock Text="PRO" FontSize="10" FontWeight="Black" FontStyle="Italic" Foreground="#0B0B0B"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock x:Name="AccountName" Text="Sign in" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock x:Name="AccountSub" Text="Create a free account" FontSize="11" FontWeight="Normal" Foreground="{StaticResource SubTextBrush}"/>
-                        </StackPanel>
-                    </DockPanel>
-                </Button>
-                <Border DockPanel.Dock="Bottom" Height="1" Background="{StaticResource BorderBrush}" Margin="16,4"/>
                 <ScrollViewer VerticalScrollBarVisibility="Hidden">
                 <StackPanel x:Name="NavList" Margin="0,6,0,8">
                     <RadioButton Style="{StaticResource SideNav}" Tag="home" IsChecked="True" Checked="Section_Checked">
@@ -481,6 +463,8 @@
                         <Border x:Name="HomeCrosshairTile" Style="{StaticResource Tile}">
                             <DockPanel>
                                 <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
+                                <Button DockPanel.Dock="Right" Content="Customize" Padding="10,3" FontSize="11" Margin="0,0,10,0" VerticalAlignment="Center"
+                                        Click="OpenCrosshair_Click" ToolTip="Change the crosshair's look, weapon styles and keys"/>
                                 <StackPanel>
                                     <TextBlock Text="🎯  Crosshair" FontWeight="SemiBold"/>
                                     <TextBlock Text="Custom crosshair in Fortnite" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
@@ -873,10 +857,10 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Fortnite potato graphics -->
+            <!-- Fortnite settings -->
             <ScrollViewer x:Name="FortnitePage" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
                 <StackPanel Margin="24,16,24,20">
-                    <TextBlock Text="Fortnite potato graphics" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="Fortnite settings" Style="{StaticResource PageTitle}"/>
                     <TextBlock Style="{StaticResource PageSubtitle}"
                                Text="Edit Fortnite's own settings file (GameUserSettings.ini) beyond what the in-game menu allows. A backup is taken before every save. Close Fortnite before saving."/>
                     <Border x:Name="FortniteWarning" Style="{StaticResource Card}" BorderBrush="{StaticResource WarnBrush}" Visibility="Collapsed">
@@ -885,8 +869,6 @@
 
                     <StackPanel x:Name="FortniteEditor">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                            <Button Content="🥔🥔 Ultra potato" Style="{StaticResource PrimaryButton}" Click="UltraPotatoPreset_Click"/>
-                            <Button Content="🥔 Potato preset" Click="PotatoPreset_Click"/>
                             <Button Content="🎯 Competitive preset" Click="CompetitivePreset_Click"/>
                             <Button Content="Reload from file" Click="ReloadFortnite_Click"/>
                         </StackPanel>
@@ -1022,58 +1004,6 @@
                             <Button Content="Restore original settings" Click="RestoreFortnite_Click"/>
                         </StackPanel>
 
-                        <StackPanel x:Name="FortniteGpuCard" Visibility="Collapsed">
-                            <TextBlock Text="Flat potato textures (NVIDIA driver)" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
-                            <ItemsControl x:Name="FortniteTweakList" ItemTemplate="{StaticResource TweakCard}"/>
-                            <StackPanel Orientation="Horizontal" Margin="4,0,0,4">
-                                <TextBlock Text="Flatness" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="FlatnessCombo" Width="140" SelectionChanged="Flatness_SelectionChanged"/>
-                                <TextBlock Text="Light keeps more detail, Max is the flattest. Medium is a good balance; hills stay readable at every level."
-                                           VerticalAlignment="Center" Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource SubTextBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel x:Name="AmdPotatoCard" Visibility="Collapsed">
-                            <TextBlock Text="Flat potato textures (AMD Radeon)" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
-                            <Border Style="{StaticResource Card}">
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10"
-                                               Text="AMD's driver has no texture-blur (LOD bias) setting like NVIDIA's, and its per-game settings can only be changed safely in AMD Software. These settings get you closest to the flat look, and they're all allowed with anti-cheat."/>
-                                    <TextBlock Text="AMD Software: Adrenalin → Gaming → Games → Fortnite" FontWeight="SemiBold"/>
-                                    <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                        • Texture Filtering Quality: <Run Text="Performance" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
-                                        • Anisotropic Filtering: <Run Text="Use application settings" Foreground="{DynamicResource AccentBrush}"/> (turning it off smears hills and the ground),  Surface Format Optimization: <Run Text="On" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
-                                        • Tessellation Mode: <Run Text="Override application settings" Foreground="{DynamicResource AccentBrush}"/>,  Maximum Tessellation Level: <Run Text="Off" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
-                                        • Radeon Image Sharpening: <Run Text="Off" Foreground="{DynamicResource AccentBrush}"/> (keeps edges soft and flat)<LineBreak/>
-                                        • Optional: Radeon Super Resolution <Run Text="On" Foreground="{DynamicResource AccentBrush}"/>, then pick a lower resolution in Fortnite for an even blockier look and more FPS
-                                    </TextBlock>
-                                    <Button Content="Open AMD Software" HorizontalAlignment="Left" Click="OpenAmd_Click"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Text="Even more potato: GPU driver settings" Style="{StaticResource SectionTitle}" Margin="0,24,0,10"/>
-                        <Border Style="{StaticResource Card}">
-                            <StackPanel>
-                                <TextBlock Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,10"
-                                           Text="Your graphics driver can lower texture quality further. These settings are allowed and safe with anti-cheat. Set them for Fortnite only (FortniteClient-Win64-Shipping.exe), not globally."/>
-                                <TextBlock Text="NVIDIA Control Panel → Manage 3D settings → Program settings" FontWeight="SemiBold"/>
-                                <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                    • Texture filtering - Quality: <Run Text="High performance" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
-                                    • Anisotropic filtering: <Run Text="Application-controlled" Foreground="{DynamicResource AccentBrush}"/> (turning it off smears hills and the ground),  Antialiasing - FXAA: <Run Text="Off" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
-                                    • Low latency mode: <Run Text="Ultra" Foreground="{DynamicResource AccentBrush}"/>,  Power management: <Run Text="Prefer maximum performance" Foreground="{DynamicResource AccentBrush}"/>
-                                </TextBlock>
-                                <TextBlock Text="AMD Software: Adrenalin → Gaming → Fortnite" FontWeight="SemiBold"/>
-                                <TextBlock TextWrapping="Wrap" Margin="12,4,0,10" LineHeight="20">
-                                    • Texture Filtering Quality: <Run Text="Performance" Foreground="{DynamicResource AccentBrush}"/>,  Anisotropic Filtering: <Run Text="Use application settings" Foreground="{DynamicResource AccentBrush}"/><LineBreak/>
-                                    • Surface Format Optimization: <Run Text="On" Foreground="{DynamicResource AccentBrush}"/>,  Radeon Anti-Lag: <Run Text="On" Foreground="{DynamicResource AccentBrush}"/>
-                                </TextBlock>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Content="Open NVIDIA Control Panel" Click="OpenNvidia_Click"/>
-                                    <Button Content="Open AMD Software" Click="OpenAmd_Click"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
@@ -1664,6 +1594,8 @@
                                 <TextBlock x:Name="DetailSpudPageTitle" FontWeight="Bold" FontSize="15" Margin="0,0,0,4"/>
                                 <TextBlock x:Name="DetailSpudPageText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,12"/>
                                 <Button x:Name="DetailSpudPageButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0" Click="DetailSpudPage_Click"/>
+                                <Button x:Name="DetailCrosshairButton" Content="🎯  Crosshair settings  ›" HorizontalAlignment="Stretch" Margin="0,6,0,0"
+                                        Visibility="Collapsed" Click="OpenCrosshair_Click"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -2056,101 +1988,6 @@
                         </ItemsControl>
                     </ScrollViewer>
                 </DockPanel>
-            </Border>
-        </Grid>
-
-        <!-- Account: sign in / create account, or your account with Premium and cloud save -->
-        <Grid x:Name="AccountOverlay" Grid.ColumnSpan="2" Grid.RowSpan="3" Visibility="Collapsed" Background="#D90B0D11" MouseLeftButtonDown="AccountOverlay_BackgroundClick">
-            <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderHoverBrush}" BorderThickness="1" CornerRadius="16"
-                    Width="460" Padding="28,24" VerticalAlignment="Center" HorizontalAlignment="Center" MouseLeftButtonDown="AccountCard_MouseDown">
-                <StackPanel>
-                    <DockPanel Margin="0,0,0,14">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource ChromeButton}" Width="34" Height="30" Content="&#xE8BB;" Click="CloseAccount_Click" VerticalAlignment="Top"/>
-                        <Image Source="logo.png" Width="36" Height="36" Margin="0,0,12,0"/>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock x:Name="AccountTitle" Text="Sign in to SpudBoost" FontSize="20" FontWeight="Bold"/>
-                            <TextBlock x:Name="AccountSubtitle" Text="Sync your setup and unlock Premium." Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
-                        </StackPanel>
-                    </DockPanel>
-
-                    <!-- Signed out -->
-                    <StackPanel x:Name="SignedOutPanel">
-                        <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="4" Margin="0,0,0,14">
-                            <UniformGrid Columns="2">
-                                <RadioButton x:Name="SignInTab" Style="{StaticResource SubTab}" Content="Sign in" IsChecked="True" GroupName="AccountMode" Margin="0"
-                                             HorizontalContentAlignment="Center" Checked="AccountMode_Checked"/>
-                                <RadioButton x:Name="CreateTab" Style="{StaticResource SubTab}" Content="Create account" GroupName="AccountMode" Margin="0"
-                                             HorizontalContentAlignment="Center" Checked="AccountMode_Checked"/>
-                            </UniformGrid>
-                        </Border>
-                        <StackPanel x:Name="UsernameRow" Visibility="Collapsed">
-                            <TextBlock Text="Username" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                            <TextBox x:Name="AccountUsername" Padding="10,8" Margin="0,0,0,12" MaxLength="20"/>
-                        </StackPanel>
-                        <TextBlock Text="Email" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <TextBox x:Name="AccountEmail" Padding="10,8" Margin="0,0,0,12"/>
-                        <TextBlock Text="Password" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <PasswordBox x:Name="AccountPassword" Padding="10,8" Margin="0,0,0,12" KeyDown="AccountPassword_KeyDown"/>
-                        <StackPanel x:Name="ConfirmRow" Visibility="Collapsed">
-                            <TextBlock Text="Confirm password" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                            <PasswordBox x:Name="AccountPassword2" Padding="10,8" Margin="0,0,0,12" KeyDown="AccountPassword_KeyDown"/>
-                        </StackPanel>
-                        <TextBlock x:Name="AccountError" Foreground="#FF6B7A" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed"/>
-                        <TextBlock x:Name="AccountInfo" Foreground="#5BD18B" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed"/>
-                        <Button x:Name="AccountSubmit" Content="Sign in" Style="{StaticResource PrimaryButton}" Height="40" FontSize="14" Margin="0" Click="AccountSubmit_Click"/>
-                        <Button x:Name="ForgotButton" Content="Forgot password?" Margin="0,10,0,0" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent"
-                                Foreground="{StaticResource SubTextBrush}" Click="ForgotPassword_Click"/>
-                    </StackPanel>
-
-                    <!-- Signed in -->
-                    <StackPanel x:Name="SignedInPanel" Visibility="Collapsed">
-                        <Border Background="{StaticResource CardBrush}" CornerRadius="12" Padding="16,14" Margin="0,0,0,12">
-                            <DockPanel>
-                                <Grid Width="48" Height="48" Margin="0,0,14,0">
-                                    <Ellipse Fill="{DynamicResource AccentGradientBrush}"/>
-                                    <TextBlock x:Name="BigAvatarInitial" FontWeight="Bold" FontSize="20" Foreground="#0B0B0B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock x:Name="AccountShownName" FontSize="16" FontWeight="Bold"/>
-                                    <TextBlock x:Name="AccountShownEmail" Foreground="{StaticResource SubTextBrush}" FontSize="12"/>
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
-                        <!-- Premium -->
-                        <Border x:Name="PremiumCard" CornerRadius="12" Padding="16,14" Margin="0,0,0,12" Background="{DynamicResource HeroBrush}"
-                                BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1">
-                            <StackPanel>
-                                <DockPanel>
-                                    <Border x:Name="PremiumStateBadge" DockPanel.Dock="Right" Style="{StaticResource NewBadge}">
-                                        <TextBlock x:Name="PremiumStateText" Text="FREE" FontSize="10" FontWeight="Black" FontStyle="Italic" Foreground="#0B0B0B"/>
-                                    </Border>
-                                    <TextBlock Text="⭐  SpudBoost Premium" FontSize="15" FontWeight="Bold"/>
-                                </DockPanel>
-                                <TextBlock x:Name="PremiumText" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,12"/>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button x:Name="GetPremiumButton" Content="Get Premium" Style="{StaticResource PrimaryButton}" Click="GetPremium_Click"/>
-                                    <Button x:Name="ManagePremiumButton" Content="Manage subscription" Click="ManagePremium_Click"/>
-                                    <Button x:Name="RefreshPremiumButton" Content="I've paid: refresh" Click="RefreshPremium_Click"
-                                            ToolTip="Checks your account again after buying Premium"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-                        <!-- Cloud save -->
-                        <Border Background="{StaticResource CardBrush}" CornerRadius="12" Padding="16,14" Margin="0,0,0,12">
-                            <StackPanel>
-                                <TextBlock Text="☁  Cloud save" FontSize="15" FontWeight="Bold"/>
-                                <TextBlock x:Name="CloudText" Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,10"
-                                           Text="Your profiles, crosshairs, Game Boost lists, favourites and accent colour, saved to your account."/>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <Button Content="Back up now" Click="CloudBackup_Click"/>
-                                    <Button Content="Restore from cloud" Click="CloudRestore_Click"/>
-                                </StackPanel>
-                                <CheckBox x:Name="CloudAutoBox" Content="Back up automatically when I change things" Click="CloudAuto_Click"/>
-                            </StackPanel>
-                        </Border>
-                        <Button Content="Sign out" HorizontalAlignment="Left" Margin="0" Click="SignOut_Click"/>
-                    </StackPanel>
-                </StackPanel>
             </Border>
         </Grid>
 

@@ -233,7 +233,6 @@ public partial class MainWindow
         _settings.Save();
         AppsToCloseBox.Text = string.Join(Environment.NewLine, _settings.AppsToClose);
         CloseAppsBox.IsChecked = true;
-        QueueCloudBackup();
         SetStatus($"Game Boost will close {string.Join(", ", added)} when you start a game.");
     }
 
@@ -276,7 +275,6 @@ public partial class MainWindow
         _settings.Save();
         ApplyAccent(hex);
         RefreshAccentList();
-        QueueCloudBackup();
     }
 
     /// <summary>Swaps the accent brushes; every control uses them as dynamic resources, so the change is instant.</summary>

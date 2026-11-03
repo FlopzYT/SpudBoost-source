@@ -13,7 +13,8 @@ public partial class MainWindow
         new("home", "Home", [("Home", "HomePage")]),
         new("optimize", "Optimizations", [("Tweaks", "TweaksPage"), ("Network", "NetworkPage"), ("Startup apps", "StartupPage"), ("Debloater", "DebloatPage")]),
         new("boost", "Boost-Up", [("Game Boost", "BoostPage"), ("Cleaner", "CleanerPage"), ("FPS Benchmark", "BenchmarkPage")]),
-        new("games", "Games", [("Library", "LibraryPage"), ("Fortnite", "FortnitePage"), ("Roblox", "Game:roblox"), ("Minecraft", "Game:minecraft"), ("CS2", "Game:cs2"), ("Crosshair", "CrosshairPage")]),
+        // Game pages (Fortnite, Roblox, Minecraft, CS2) and the crosshair open from the Library and Home instead of tabs.
+        new("games", "Games", [("Library", "LibraryPage")]),
         new("monitor", "Hardware Monitor", [("Monitor", "MonitorPage")]),
         new("backups", "Profiles & Backups", [("My profiles", "ProfilesPage"), ("Backup & Undo", "BackupPage")]),
         new("settings", "Settings", [("Settings", "SettingsPage")]),
@@ -26,7 +27,7 @@ public partial class MainWindow
 
     void Section_Checked(object sender, RoutedEventArgs e)
     {
-        if (Pages == null) return;
+        if (Pages == null || _selectingSection) return;
         var section = Sections.First(s => s.Id == (string)((RadioButton)sender).Tag);
         ShowSection(section, _lastPage.GetValueOrDefault(section.Id, section.Pages[0].Page));
     }
@@ -50,7 +51,9 @@ public partial class MainWindow
     /// <summary>Shows a page (by its element name, or "Game:id" for the Roblox/Minecraft/CS2 page).</summary>
     void ShowPage(NavSection section, string target)
     {
-        _lastPage[section.Id] = target;
+        // Only tab pages are remembered: pages opened from elsewhere (a game page, the crosshair) aren't returned to
+        // when the sidebar section is clicked again, so Games always goes back to the Library.
+        if (section.Pages.Any(p => p.Page == target)) _lastPage[section.Id] = target;
         _currentPage = target;
         foreach (FrameworkElement page in Pages.Children)
         {
@@ -69,11 +72,17 @@ public partial class MainWindow
     void NavigateTo(string page)
     {
         var section = Sections.FirstOrDefault(s => s.Pages.Any(p => p.Page == page)) ?? Sections.First(s => s.Id == "games");
-        _lastPage[section.Id] = page;
         var nav = NavList.Children.OfType<RadioButton>().First(r => (string)r.Tag == section.Id);
-        if (nav.IsChecked == true) ShowSection(section, page);
-        else nav.IsChecked = true;
+        if (nav.IsChecked != true)
+        {
+            _selectingSection = true; // highlight the section without opening its default page first
+            nav.IsChecked = true;
+            _selectingSection = false;
+        }
+        ShowSection(section, page);
     }
+
+    bool _selectingSection;
 
     void GetSupport_Click(object sender, RoutedEventArgs e) =>
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo($"https://github.com/{Core.UpdateChecker.Repository}/issues") { UseShellExecute = true });

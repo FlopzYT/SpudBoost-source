@@ -25,6 +25,7 @@ public partial class MainWindow
         ["epic-fortnite"] = ("FortnitePage", "Fortnite"),
         ["steam-730"] = ("Game:cs2", "CS2"),
         ["ms-minecraft"] = ("Game:minecraft", "Minecraft"),
+        ["roblox"] = ("Game:roblox", "Roblox"),
     };
 
     List<Tweak> GetLibraryTweaks(LibraryGame game, string exe)
@@ -74,10 +75,12 @@ public partial class MainWindow
         {
             DetailSpudPageTitle.Text = $"SpudBoost {spud.Title} page";
             DetailSpudPageText.Text = spud.Page == "FortnitePage"
-                ? "Potato graphics, Legacy Performance mode, NVIDIA/AMD potato textures and every graphics setting in one place."
+                ? "Every Fortnite graphics setting in one place, with presets and a backup of your originals."
                 : $"Change {spud.Title}'s graphics settings and apply FPS presets without opening the game.";
             DetailSpudPageButton.Content = $"Open {spud.Title} settings  ›";
         }
+        // The crosshair overlay is Fortnite-only, so its page is reached from Fortnite's game page (and Home).
+        DetailCrosshairButton.Visibility = game.Key == "epic-fortnite" ? Visibility.Visible : Visibility.Collapsed;
         var stale = DateTime.Now - _settings.LastAutoClean > TimeSpan.FromDays(7);
         DetailAttention.Visibility = stale ? Visibility.Visible : Visibility.Collapsed;
         DetailBoostText.Text = stale
@@ -149,7 +152,6 @@ public partial class MainWindow
         _settings.Save();
         SortLibrary();
         UpdateHome();
-        QueueCloudBackup();
     }
 
     /// <summary>Favourites first, then alphabetical.</summary>
@@ -183,6 +185,8 @@ public partial class MainWindow
     }
 
     void DetailBoostUp_Click(object sender, RoutedEventArgs e) => NavigateTo("CleanerPage");
+
+    void OpenCrosshair_Click(object sender, RoutedEventArgs e) => NavigateTo("CrosshairPage");
 
     void DetailSpudPage_Click(object sender, RoutedEventArgs e)
     {
