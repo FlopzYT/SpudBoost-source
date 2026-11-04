@@ -76,7 +76,7 @@ public sealed class StatsOverlayWindow : Window
 }
 
 /// <summary>
-/// Shows GPU temperature and load, CPU and RAM use and live ping to your Fortnite region while Fortnite is in front.
+/// Shows GPU temperature and load, CPU and RAM use and live ping on top of every app and game while switched on.
 /// Readings refresh every 2 seconds; a hotkey hides it mid-game.
 /// </summary>
 public sealed class StatsOverlayController : ObservableObject
@@ -84,7 +84,6 @@ public sealed class StatsOverlayController : ObservableObject
     public static readonly string[] Corners = ["Top left", "Top right", "Bottom left", "Bottom right"];
 
     readonly AppSettings _settings;
-    readonly ForegroundGame _foreground = new();
     readonly SystemMonitor _monitor = new();
     readonly DispatcherTimer _fast = new() { Interval = TimeSpan.FromMilliseconds(100) };
     readonly DispatcherTimer _slow = new() { Interval = TimeSpan.FromSeconds(2) };
@@ -123,17 +122,15 @@ public sealed class StatsOverlayController : ObservableObject
 
     void Tick()
     {
-        var inFront = _foreground.FortniteInFront();
-        var interval = TimeSpan.FromMilliseconds(inFront ? 100 : 500); // relaxed while not in game
-        if (_fast.Interval != interval) _fast.Interval = interval;
-        if (inFront && _toggleVk != 0)
+        // Shown over every app and game while switched on; the hotkey hides and shows it anywhere.
+        if (S.Enabled && _toggleVk != 0)
         {
             var down = ForegroundGame.IsDown(_toggleVk);
             if (down && !_toggleDown) _hiddenByHotkey = !_hiddenByHotkey;
             _toggleDown = down;
         }
 
-        var show = S.Enabled && inFront && !_hiddenByHotkey;
+        var show = S.Enabled && !_hiddenByHotkey;
         if (show)
         {
             if (_window == null)

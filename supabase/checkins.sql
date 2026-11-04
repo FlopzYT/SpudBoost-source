@@ -33,3 +33,22 @@ create or replace view public.versions_today with (security_invoker = true) as
 
 revoke all on public.daily_active_users from anon, authenticated;
 revoke all on public.versions_today from anon, authenticated;
+
+-- Public totals for the website (spudboost.app). Returns only counts, never install IDs or versions.
+create or replace function public.public_stats()
+returns json
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select json_build_object(
+    'today', count(distinct install_id) filter (where day = (now() at time zone 'utc')::date),
+    'week',  count(distinct install_id) filter (where day > (now() at time zone 'utc')::date - 7),
+    'month', count(distinct install_id) filter (where day > (now() at time zone 'utc')::date - 30)
+  )
+  from public.checkins
+  where day > (now() at time zone 'utc')::date - 30;
+$$;
+revoke all on function public.public_stats() from public;
+grant execute on function public.public_stats() to anon, authenticated;

@@ -109,12 +109,12 @@ public sealed class AppSettings
     }
 }
 
-/// <summary>The in-game stats readout (temperatures, usage, ping) shown in a corner over Fortnite.</summary>
+/// <summary>The in-game stats readout (temperatures, usage, ping) shown in a corner on top of every app and game.</summary>
 public sealed class StatsOverlaySettings
 {
     public bool Enabled { get; set; }
     public string Corner { get; set; } = "Top right";
-    /// <summary>Key that shows/hides the overlay in game. Empty = no hotkey.</summary>
+    /// <summary>Key that shows/hides the overlay anywhere. Empty = no hotkey.</summary>
     public string ToggleKey { get; set; } = "F9";
     /// <summary>Fortnite region to ping, e.g. "NA-East".</summary>
     public string PingRegion { get; set; } = "NA-East";

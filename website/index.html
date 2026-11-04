@@ -80,7 +80,7 @@
             Join the Discord
           </a>
         </div>
-        <div class="meta"><span id="version">Latest version</span><span>Free, no ads</span><span>Updates itself</span></div>
+        <div class="meta"><span id="version">Latest version</span><span id="players" class="live" hidden></span><span>Free, no ads</span><span>Updates itself</span></div>
       </div>
       <img class="hero-shot" src="assets/screenshot-home.png" alt="SpudBoost home screen with the Spud Score and Boost button">
     </div>
@@ -215,6 +215,23 @@
       document.querySelectorAll(".download-link").forEach(a => a.href = setup.browser_download_url);
       const mb = Math.round(setup.size / 1048576);
       document.getElementById("version").textContent = `Version ${release.tag_name.replace(/^v/, "")} · ${mb} MB`;
+    })
+    .catch(() => {});
+
+  // Live player count from SpudBoost's anonymous daily check-ins (counts only, no personal data).
+  // Stays hidden until there are enough players to be worth showing.
+  fetch("https://vizfsimjepggldfsixei.supabase.co/rest/v1/rpc/public_stats", {
+    method: "POST",
+    headers: { apikey: "sb_publishable_tBiCqwR5MJVIdkkamor-lA_7bAcFwAu", "Content-Type": "application/json" },
+    body: "{}",
+  })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(stats => {
+      const n = stats.week;
+      if (!(n >= 10)) return;
+      const el = document.getElementById("players");
+      el.textContent = `${n.toLocaleString()} players this week`;
+      el.hidden = false;
     })
     .catch(() => {});
 </script>

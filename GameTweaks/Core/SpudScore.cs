@@ -50,7 +50,7 @@ public static class SpudScore
         else if (!boostOn)
             step = "Switch on Game Boost";
         else if (health.Count > 0)
-            step = health[0].Title + " (see the yellow card below)";
+            step = health[0].Title;
         else
             step = "Nothing left. This PC is fully boosted!";
         return new SpudScoreResult(score, rank, emoji, step, fix);

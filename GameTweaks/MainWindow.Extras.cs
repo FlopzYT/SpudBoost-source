@@ -114,7 +114,9 @@ public partial class MainWindow
         _score = result;
         ScoreRank.Text = $"{result.Emoji}  {result.Rank}";
         ScoreNext.Text = "Next: " + result.NextStep;
-        ScoreFixButton.Visibility = result.NextTweak is { CanToggle: true } || (result.NextTweak == null && !_booster.Enabled)
+        var healthStep = result.NextTweak == null && _booster.Enabled && _health.Count > 0;
+        ScoreFixButton.Content = healthStep ? "Show me" : "Do it";
+        ScoreFixButton.Visibility = result.NextTweak is { CanToggle: true } || (result.NextTweak == null && !_booster.Enabled) || healthStep
             ? Visibility.Visible : Visibility.Collapsed;
         AnimateScore(previous ?? 0, result.Score);
         UpdateHome();
@@ -169,6 +171,14 @@ public partial class MainWindow
             UpdateUndoSummary();
         }
         else if (!_booster.Enabled) _booster.Enabled = true;
+        else if (_health.Count > 0)
+        {
+            // Hardware steps (XMP, power plan...) can't be done for you: open the card that explains how.
+            NavigateTo("TweaksPage");
+            if (HealthList.Visibility != Visibility.Visible) HealthCard_Click(HealthCard, null!);
+            HealthCard.BringIntoView();
+            return;
+        }
         UpdateScore();
     }
 

@@ -476,7 +476,7 @@
                                 <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
                                 <StackPanel>
                                     <TextBlock Text="📈  Stats overlay" FontWeight="SemiBold"/>
-                                    <TextBlock Text="GPU temp, CPU, RAM and ping in game" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
+                                    <TextBlock Text="GPU temp, CPU, RAM and ping on screen" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -1756,8 +1756,8 @@
                             <DockPanel>
                                 <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
                                 <StackPanel>
-                                    <TextBlock Text="In-game stats overlay" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Shows GPU temperature and load, CPU and RAM use and live ping in a corner while Fortnite is the window in front (Windowed fullscreen)."
+                                    <TextBlock Text="Stats overlay" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Shows GPU temperature and load, CPU and RAM use and live ping in a corner on top of every app and game. Games need to run in borderless or windowed mode for it to show. Press the show/hide key to hide it anywhere."
                                                Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"/>
                                 </StackPanel>
                             </DockPanel>
