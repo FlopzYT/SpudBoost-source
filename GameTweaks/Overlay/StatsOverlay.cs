@@ -89,6 +89,9 @@ public sealed class StatsOverlayController : ObservableObject
     readonly DispatcherTimer _slow = new() { Interval = TimeSpan.FromSeconds(2) };
     StatsOverlayWindow? _window;
     string _ping = "…";
+    string _stats = "Loading stats…";
+    readonly LiveFps _fps = new();
+    bool _downloadingPresentMon;
     int _toggleVk, _ticks;
     bool _toggleDown, _hiddenByHotkey, _updating;
 
@@ -143,15 +146,17 @@ public sealed class StatsOverlayController : ObservableObject
                 _window.Show();
                 _window.PlaceIn(S.Corner);
                 _slow.Start();
+                StartFps();
                 _ = RefreshAsync();
             }
-            if (++_ticks % 10 == 0) _window.KeepOnTop(); // about once a second
+            if (++_ticks % 10 == 0) { _window.KeepOnTop(); ShowLines(); } // about once a second
 
         }
         else if (_window is { IsVisible: true })
         {
             _window.Hide();
             _slow.Stop(); // no readings (and no nvidia-smi calls) while hidden
+            _fps.Stop();
         }
     }
 
@@ -163,10 +168,36 @@ public sealed class StatsOverlayController : ObservableObject
         {
             await Task.WhenAll(_monitor.UpdateAsync(), PingAsync());
             var gpu = SystemMonitor.HasNvidiaSmi ? $"GPU  {_monitor.GpuTemp,-6}  {_monitor.Gpu,4}\n" : "";
-            _window.SetLines($"{gpu}CPU  {_monitor.Cpu,4}   RAM {_monitor.Ram,4}\nPING {_ping} ({S.PingRegion})");
-            _window.PlaceIn(S.Corner);
+            _stats = $"{gpu}CPU  {_monitor.Cpu,4}   RAM {_monitor.Ram,4}\nPING {_ping} ({S.PingRegion})";
+            ShowLines();
         }
         finally { _updating = false; }
+    }
+
+    /// <summary>FPS line (refreshed every second) on top of the slower stats.</summary>
+    void ShowLines()
+    {
+        if (_window == null) return;
+        string fps;
+        if (_fps.ForegroundFps() is { } live) fps = $"FPS  {live.Fps,4:0}   1% LOW {live.Low1:0}";
+        else if (_downloadingPresentMon) fps = "FPS  getting PresentMon…";
+        else if (_fps.Problem != null) fps = $"FPS  ({_fps.Problem})";
+        else fps = "FPS  –";
+        _window.SetLines($"{fps}\n{_stats}");
+        _window.PlaceIn(S.Corner);
+    }
+
+    /// <summary>Starts live FPS, downloading PresentMon the first time if needed.</summary>
+    async void StartFps()
+    {
+        if (!Benchmark.Installed && Shell.IsAdmin && !_downloadingPresentMon)
+        {
+            _downloadingPresentMon = true;
+            try { await Benchmark.DownloadAsync(); }
+            catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or TaskCanceledException or System.IO.IOException) { }
+            finally { _downloadingPresentMon = false; }
+        }
+        if (_window is { IsVisible: true }) _fps.Start();
     }
 
     async Task PingAsync()
@@ -184,6 +215,7 @@ public sealed class StatsOverlayController : ObservableObject
     {
         _fast.Stop();
         _slow.Stop();
+        _fps.Stop();
         _window?.Close();
         _window = null;
     }

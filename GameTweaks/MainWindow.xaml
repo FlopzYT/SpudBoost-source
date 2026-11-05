@@ -476,7 +476,7 @@
                                 <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
                                 <StackPanel>
                                     <TextBlock Text="📈  Stats overlay" FontWeight="SemiBold"/>
-                                    <TextBlock Text="GPU temp, CPU, RAM and ping on screen" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
+                                    <TextBlock Text="FPS, GPU temp, CPU, RAM and ping on screen" FontSize="11" Foreground="{StaticResource SubTextBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,8,0"/>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -1757,7 +1757,7 @@
                                 <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Enabled, Mode=TwoWay}"/>
                                 <StackPanel>
                                     <TextBlock Text="Stats overlay" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Shows GPU temperature and load, CPU and RAM use and live ping in a corner on top of every app and game. Games need to run in borderless or windowed mode for it to show. Press the show/hide key to hide it anywhere."
+                                    <TextBlock Text="Shows live FPS and 1% lows, GPU temperature and load, CPU and RAM use and ping in a corner on top of every app and game. FPS uses PresentMon (downloaded automatically, needs admin) and never touches the game. Games need to run in borderless or windowed mode for it to show. Press the show/hide key to hide it anywhere."
                                                Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,2,12,0"/>
                                 </StackPanel>
                             </DockPanel>

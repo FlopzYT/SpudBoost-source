@@ -98,8 +98,8 @@ public partial class App : Application
                     return false;
                 }
             }
-            _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
-            _exitEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ExitEventName);
+            _showEvent = OpenSignal(ShowEventName);
+            _exitEvent = OpenSignal(ExitEventName);
             return true;
         }
         catch (UnauthorizedAccessException)
@@ -109,6 +109,43 @@ public partial class App : Application
                 "SpudBoost", MessageBoxButton.OK, MessageBoxImage.Information);
             return false;
         }
+    }
+
+    [System.Runtime.InteropServices.DllImport("advapi32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string sddl, int revision, out IntPtr descriptor, IntPtr size);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    static extern Microsoft.Win32.SafeHandles.SafeWaitHandle CreateEvent(ref SecurityAttributes attributes, bool manualReset, bool initialState, string name);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")] static extern IntPtr LocalFree(IntPtr memory);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    struct SecurityAttributes { public int Length; public IntPtr Descriptor; public bool Inherit; }
+
+    /// <summary>
+    /// Creates a show/exit signal that a copy started WITHOUT admin can still set (the uninstaller, the updater,
+    /// a second launch). Objects made by an admin copy are otherwise off-limits to normal programs, so "--exit"
+    /// silently failed and the uninstaller couldn't remove the still-running SpudBoost.exe.
+    /// Only the current user can set it ("OW" = owner rights); the label lets medium-integrity programs through.
+    /// </summary>
+    static EventWaitHandle OpenSignal(string name)
+    {
+        // Allow the user's own processes (owner + interactive user) to wait/set; integrity label: medium, no write-up blocked.
+        const string Sddl = "D:(A;;0x1F0003;;;OW)(A;;0x1F0003;;;IU)(A;;0x1F0003;;;SY)S:(ML;;NW;;;ME)";
+        if (ConvertStringSecurityDescriptorToSecurityDescriptor(Sddl, 1, out var descriptor, IntPtr.Zero))
+        {
+            try
+            {
+                var attributes = new SecurityAttributes
+                {
+                    Length = System.Runtime.InteropServices.Marshal.SizeOf<SecurityAttributes>(),
+                    Descriptor = descriptor,
+                };
+                var handle = CreateEvent(ref attributes, false, false, name);
+                if (!handle.IsInvalid)
+                    return new EventWaitHandle(false, EventResetMode.AutoReset) { SafeWaitHandle = handle };
+            }
+            finally { LocalFree(descriptor); }
+        }
+        return new EventWaitHandle(false, EventResetMode.AutoReset, name);
     }
 
     static void Signal(string eventName)

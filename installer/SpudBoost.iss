@@ -2,7 +2,7 @@
 ; Expects the published app in ..\release\SpudBoost.exe (dotnet publish GameTweaks -c Release -o release).
 
 #define AppName "SpudBoost"
-#define AppVersion "1.6.2"
+#define AppVersion "1.6.3"
 #define AppExe "SpudBoost.exe"
 
 [Setup]
@@ -63,10 +63,6 @@ Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; Flags: nowait pos
 ; In-app updates run this installer with /SILENT: reopen SpudBoost afterwards.
 Filename: "{app}\{#AppExe}"; Flags: nowait; Check: WizardSilent
 
-[UninstallRun]
-; Exit cleanly first so Game Boost puts process priorities back.
-Filename: "{app}\{#AppExe}"; Parameters: "--exit"; Flags: runhidden waituntilterminated; RunOnceId: "ExitSpudBoost"
-
 [Code]
 // True for a fresh install, or an upgrade from 1.0.x/1.1.x (before the startup option existed).
 function StartupNotDecidedYet: Boolean;
@@ -103,4 +99,60 @@ begin
            ExpandConstant('{localappdata}\GameTweaks') + #13#10#13#10 +
            'To undo tweaks, reinstall SpudBoost and use Backup & Undo, or delete that folder if you don''t need them.',
            mbInformation, MB_OK);
+end;
+
+// ---- Closing a running SpudBoost before uninstalling ----
+// SpudBoost usually runs as admin and the uninstaller doesn't, so a plain "--exit" (or Windows' own "close apps")
+// may not reach it, and its locked SpudBoost.exe then can't be removed.
+
+function SpudBoostRunning: Boolean;
+var
+  ResultCode: Integer;
+begin
+  // tasklist sees admin processes too; find returns 0 when the name is in the list
+  Result := Exec(ExpandConstant('{cmd}'), '/C tasklist /FI "IMAGENAME eq {#AppExe}" /NH | find /I "{#AppExe}"',
+                 '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function WaitForExit(Seconds: Integer): Boolean;
+var
+  I: Integer;
+begin
+  for I := 1 to Seconds * 4 do
+  begin
+    if not SpudBoostRunning then
+    begin
+      Result := True;
+      Exit;
+    end;
+    Sleep(250);
+  end;
+  Result := not SpudBoostRunning;
+end;
+
+function InitializeUninstall: Boolean;
+var
+  ResultCode: Integer;
+  Exe: String;
+begin
+  Result := True;
+  if not SpudBoostRunning then Exit;
+  Exe := ExpandConstant('{app}\{#AppExe}');
+
+  // 1. Ask it to exit cleanly (Game Boost puts process priorities back).
+  Exec(Exe, '--exit', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  if WaitForExit(5) then Exit;
+
+  // 2. It's running as admin: ask again as admin (one Windows prompt).
+  ShellExec('runas', Exe, '--exit', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  if WaitForExit(8) then Exit;
+
+  // 3. Still open: stop it as admin.
+  ShellExec('runas', ExpandConstant('{sys}\taskkill.exe'), '/F /IM {#AppExe}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  if WaitForExit(5) then Exit;
+
+  MsgBox('SpudBoost is still running, so it can''t be removed yet.' #13#10#13#10 +
+         'Right-click the orange potato icon near the clock, choose Exit, then run the uninstaller again.',
+         mbError, MB_OK);
+  Result := False;
 end;
