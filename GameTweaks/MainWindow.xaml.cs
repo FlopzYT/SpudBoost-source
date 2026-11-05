@@ -703,9 +703,7 @@ public partial class MainWindow : Window
         try
         {
             var backup = _fortnite.Save();
-            _settings.KeptFortniteSettings = KeepFortniteBox.IsChecked == true ? _fortnite.Snapshot() : null;
-            _settings.Save();
-            SetStatus($"Saved to Fortnite{(KeepFortniteBox.IsChecked == true ? " and SpudBoost will keep these settings" : "")}. Previous file backed up as {Path.GetFileName(backup)}.");
+            SetStatus($"Saved to Fortnite. Previous file backed up as {Path.GetFileName(backup)}.");
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException) { ShowError(ex); }
     }

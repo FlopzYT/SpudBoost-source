@@ -993,9 +993,6 @@
                                 <CheckBox Content="Lock settings file (read-only) so Fortnite can't reset it" IsChecked="{Binding LockReadOnly, Mode=TwoWay}"/>
                                 <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,0"
                                            Text="While locked, changes you make in Fortnite's own settings menu won't be saved. Unlock it here to change settings in-game."/>
-                                <CheckBox x:Name="KeepFortniteBox" Content="Keep these settings: put them back automatically if Fortnite resets them" Margin="0,8,0,4"/>
-                                <TextBlock Foreground="{StaticResource SubTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="20,0,0,0"
-                                           Text="Fortnite often resets graphics after big updates. SpudBoost checks while Fortnite is closed and restores what you saved here (with a backup). Takes effect when you click Save to Fortnite. Untick it before changing settings in-game."/>
                             </StackPanel>
                         </Border>
 

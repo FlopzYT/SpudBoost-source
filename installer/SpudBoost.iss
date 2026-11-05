@@ -2,7 +2,7 @@
 ; Expects the published app in ..\release\SpudBoost.exe (dotnet publish GameTweaks -c Release -o release).
 
 #define AppName "SpudBoost"
-#define AppVersion "1.6.3"
+#define AppVersion "1.6.4"
 #define AppExe "SpudBoost.exe"
 
 [Setup]

@@ -15,6 +15,21 @@ public partial class MainWindow
         try { System.IO.File.Delete(System.IO.Path.Combine(Core.BackupStore.Folder, "account.dat")); }
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException) { }
 
+        // "Keep these Fortnite settings" was removed in 1.6.4: it kept forcing potato graphics back after people
+        // changed them in-game. Stop keeping them, and unlock the settings file so Fortnite can save changes again.
+        if (_settings.KeptFortniteSettings != null)
+        {
+            _settings.KeptFortniteSettings = null;
+            _settings.Save();
+            try
+            {
+                var config = new System.IO.FileInfo(Fortnite.FortniteSettings.ConfigPath);
+                if (config.Exists && config.IsReadOnly) config.IsReadOnly = false;
+            }
+            catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException) { }
+            _tray.ShowHint("Your Fortnite graphics are no longer locked. Change them in Fortnite's settings and they'll stay.");
+        }
+
         await RefreshAllAsync();
         var stuck = AllTweaks.Where(t => RetiredTweaks.Contains(t.Id) && t.HasBackup).ToList();
         if (stuck.Count == 0) return;

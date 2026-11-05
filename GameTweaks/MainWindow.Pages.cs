@@ -28,7 +28,6 @@ public partial class MainWindow
         OverlayCornerCombo.ItemsSource = Overlay.StatsOverlayController.Corners;
         OverlayRegionCombo.ItemsSource = PingTester.RegionNames.ToList();
         Application.Current.Exit += (_, _) => _statsOverlay.Shutdown();
-        KeepFortniteBox.IsChecked = _settings.KeptFortniteSettings != null;
         StartBackgroundChores();
         if (!SystemMonitor.HasNvidiaSmi)
             MonitorSubtitle.Text += " GPU readings need an NVIDIA graphics card.";
@@ -47,15 +46,13 @@ public partial class MainWindow
         };
     }
 
-    // ---- Background chores: keep Fortnite settings, weekly clean, driver reminder ----
+    // ---- Background chores: weekly clean, driver reminder ----
 
     readonly DispatcherTimer _choreTimer = new() { Interval = TimeSpan.FromMinutes(1) };
-    Fortnite.FortniteGuard? _fortniteGuard;
     int _choreTicks;
 
     void StartBackgroundChores()
     {
-        _fortniteGuard = new Fortnite.FortniteGuard(_settings);
         AutoCleanBox.IsChecked = _settings.AutoCleanWeekly;
         _choreTimer.Tick += async (_, _) => await RunChoresAsync();
         _choreTimer.Start();
@@ -67,14 +64,6 @@ public partial class MainWindow
 
         // Once a day (only after the current Terms were accepted): anonymous check-in.
         if (_settings.TermsAcceptedVersion >= TermsVersion) await CheckIn.SendIfDueAsync(_settings);
-
-        // Every minute: put saved Fortnite settings back if the game reset them.
-        try
-        {
-            if (await Task.Run(_fortniteGuard!.CheckAndRestore))
-                _tray.ShowHint("Fortnite had reset your settings. SpudBoost put them back (backup saved).");
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException) { }
 
         // Every hour: weekly auto-clean and the monthly driver reminder.
         if (_choreTicks % 60 != 2) return;
